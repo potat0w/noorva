@@ -18,14 +18,14 @@ export function HeritageSection() {
       {/* Parallax background - converted to Next.js Image with lazy loading */}
       <motion.div style={{ y }} className="absolute inset-0 -top-20 -bottom-20">
         <Image
-          src="/h5.jpg"
-          alt="Heritage craftsmanship in Italian atelier"
+          src="https://res.cloudinary.com/dw1n6qugv/image/upload/v1778084022/WhatsApp_Image_2026-05-05_at_11.48.38_PM5_stcxj6.jpg"
+          alt="Internationally sourced premium products"
           fill
           sizes="100vw"
-          className="object-cover"
+          className="object-cover object-center"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-foreground/60" />
+        <div className="absolute inset-0 bg-foreground/65" />
       </motion.div>
 
       {/* Content */}
