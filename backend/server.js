@@ -24,12 +24,14 @@ const usersRouter = require('./routes/users');
 const cartRouter = require('./routes/cart');
 const ordersRouter = require('./routes/orders');
 const orderItemsRouter = require('./routes/orderItems');
+const reviewsRouter = require('./routes/reviews');
 
 app.use('/api/products', productsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/order-items', orderItemsRouter);
+app.use('/api/reviews', reviewsRouter);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'E-commerce API is running' });

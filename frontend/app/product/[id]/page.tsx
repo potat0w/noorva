@@ -12,9 +12,11 @@ import { ProductGallery } from "@/components/product-gallery"
 import { SizeSelector } from "@/components/size-selector"
 import { ColorSelector } from "@/components/color-selector"
 import { ProductDetailsAccordion } from "@/components/product-details-accordion"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Star } from "lucide-react"
 import { API_BASE_URL } from "@/lib/api"
 import { toast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 interface VariantImage {
   image_url: string
@@ -35,6 +37,19 @@ interface ProductApi {
   description: string | null
   price: number
   variants?: Variant[]
+}
+
+interface ReviewApi {
+  id: string
+  user_id: string
+  product_id: string
+  rating: number
+  comment: string | null
+  created_at: string
+  users?: {
+    id: string
+    name: string
+  } | null
 }
 
 const PLACEHOLDER_IMAGE = "/placeholder.svg"
@@ -68,6 +83,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
   const [cartMessage, setCartMessage] = useState("")
   const [isAddingToBag, setIsAddingToBag] = useState(false)
+  const [reviews, setReviews] = useState<ReviewApi[]>([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewComment, setReviewComment] = useState("")
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [deletingReview, setDeletingReview] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -98,6 +120,39 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
 
     loadProduct()
+  }, [id])
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user")
+    if (!stored) {
+      setCurrentUserId(null)
+      return
+    }
+    try {
+      const parsed = JSON.parse(stored)
+      setCurrentUserId(parsed?.id || null)
+    } catch {
+      setCurrentUserId(null)
+    }
+  }, [])
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/reviews/product/${id}`)
+        const data = (await response.json()) as ReviewApi[]
+        if (!response.ok) {
+          setReviews([])
+          return
+        }
+        setReviews(Array.isArray(data) ? data : [])
+      } catch {
+        setReviews([])
+      } finally {
+        setReviewsLoading(false)
+      }
+    }
+    loadReviews()
   }, [id])
 
   if (!loading && !product) {
@@ -134,6 +189,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       available: (variant.stock || 0) > 0,
     }))
   const hasColors = colorList.length > 0
+  const averageRating = reviews.length
+    ? reviews.reduce((sum, review) => sum + (Number(review.rating) || 0), 0) / reviews.length
+    : 0
+  const existingReview = reviews.find((review) => review.user_id === currentUserId) || null
 
   const accordionItems = [
     {
@@ -202,6 +261,123 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       })
     } finally {
       setIsAddingToBag(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!existingReview) {
+      setReviewRating(0)
+      setReviewComment("")
+      return
+    }
+    setReviewRating(Number(existingReview.rating) || 0)
+    setReviewComment(existingReview.comment || "")
+  }, [existingReview?.id])
+
+  const loadReviews = async () => {
+    setReviewsLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/reviews/product/${id}`)
+      const data = (await response.json()) as ReviewApi[]
+      if (!response.ok) {
+        setReviews([])
+        return
+      }
+      setReviews(Array.isArray(data) ? data : [])
+    } catch {
+      setReviews([])
+    } finally {
+      setReviewsLoading(false)
+    }
+  }
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (submittingReview) return
+    if (!reviewRating) {
+      toast({
+        title: "Rating required",
+        description: "Please select a rating between 1 and 5.",
+      })
+      return
+    }
+    const token = localStorage.getItem("token")
+    if (!token) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to submit a review.",
+      })
+      window.location.href = "/signin"
+      return
+    }
+    setSubmittingReview(true)
+    try {
+      const endpoint = existingReview ? `${API_BASE_URL}/api/reviews/${existingReview.id}` : `${API_BASE_URL}/api/reviews`
+      const method = existingReview ? "PUT" : "POST"
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          product_id: id,
+          rating: reviewRating,
+          comment: reviewComment.trim(),
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error((data as { error?: string }).error || "Failed to submit review")
+      }
+      toast({
+        title: existingReview ? "Review updated" : "Review submitted",
+        description: existingReview ? "Your review has been updated." : "Thanks for your feedback.",
+      })
+      await loadReviews()
+    } catch (error) {
+      toast({
+        title: "Review failed",
+        description: error instanceof Error ? error.message : "Failed to submit review",
+      })
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
+  const handleDeleteReview = async () => {
+    if (!existingReview || deletingReview) return
+    const token = localStorage.getItem("token")
+    if (!token) {
+      window.location.href = "/signin"
+      return
+    }
+    setDeletingReview(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/reviews/${existingReview.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error((data as { error?: string }).error || "Failed to delete review")
+      }
+      setReviewRating(0)
+      setReviewComment("")
+      toast({
+        title: "Review deleted",
+        description: "Your review has been removed.",
+      })
+      await loadReviews()
+    } catch (error) {
+      toast({
+        title: "Delete failed",
+        description: error instanceof Error ? error.message : "Failed to delete review",
+      })
+    } finally {
+      setDeletingReview(false)
     }
   }
 
@@ -274,6 +450,86 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
             <ProductDetailsAccordion items={accordionItems} />
           </motion.div>
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-6 pb-16 md:pb-24">
+        <div className="grid gap-10 lg:grid-cols-2">
+          <div className="space-y-4">
+            <h2 className="font-serif text-3xl">Customer Reviews</h2>
+            <p className="text-sm text-muted-foreground">
+              {reviews.length
+                ? `${averageRating.toFixed(1)} / 5 from ${reviews.length} review${reviews.length > 1 ? "s" : ""}`
+                : "No reviews yet. Be the first to review this product."}
+            </p>
+            {reviewsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading reviews...</p>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <div key={review.id} className="border border-border p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-medium">{review.users?.name || "Customer"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <Star
+                          key={`${review.id}-${value}`}
+                          className={`h-4 w-4 ${value <= review.rating ? "fill-current text-yellow-500" : "text-muted-foreground"}`}
+                        />
+                      ))}
+                    </div>
+                    {review.comment ? <p className="mt-2 text-sm text-muted-foreground">{review.comment}</p> : null}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-serif text-2xl">{existingReview ? "Update Your Review" : "Write a Review"}</h3>
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              <div>
+                <p className="mb-2 text-sm text-muted-foreground">Your Rating</p>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={`rate-${value}`}
+                      type="button"
+                      onClick={() => setReviewRating(value)}
+                      className="p-1"
+                      aria-label={`Rate ${value} stars`}
+                    >
+                      <Star
+                        className={`h-5 w-5 ${value <= reviewRating ? "fill-current text-yellow-500" : "text-muted-foreground"}`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-sm text-muted-foreground">Your Comment</p>
+                <Input
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Share your experience with this product"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <Button type="submit" disabled={submittingReview}>
+                  {submittingReview ? "Saving..." : existingReview ? "Update Review" : "Submit Review"}
+                </Button>
+                {existingReview ? (
+                  <Button type="button" variant="outline" disabled={deletingReview} onClick={handleDeleteReview}>
+                    {deletingReview ? "Removing..." : "Delete"}
+                  </Button>
+                ) : null}
+              </div>
+            </form>
+          </div>
         </div>
       </section>
 
