@@ -11,6 +11,7 @@ import { ArrowRight } from "lucide-react"
 import { API_BASE_URL } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface VariantImage {
   image_url: string
@@ -161,7 +162,18 @@ export default function ShopPage() {
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6">
           {loading ? (
-            <div className="text-center text-muted-foreground">Loading products...</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-10">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div key={`product-skeleton-${index}`}>
+                  <Skeleton className="aspect-[3/4] w-full mb-4" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-4/5" />
+                    <Skeleton className="h-4 w-1/3" />
+                  </div>
+                  <Skeleton className="mt-4 h-10 w-full rounded-none" />
+                </div>
+              ))}
+            </div>
           ) : products.length === 0 ? (
             <div className="text-center text-muted-foreground">No products found</div>
           ) : (
