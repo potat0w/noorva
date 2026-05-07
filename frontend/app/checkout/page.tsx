@@ -105,7 +105,8 @@ export default function CheckoutPage() {
   }, [])
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  const shipping = 0 // Complimentary
+  const locationText = `${city} ${stateProvince}`.toLowerCase()
+  const shipping = city.trim() || stateProvince.trim() ? (locationText.includes("dhaka") ? 60 : 150) : 0
   const tax = Math.round(subtotal * 0.08)
   const total = subtotal + shipping + tax
 
@@ -383,7 +384,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-green-600">Complimentary</span>
+                  <span>Tk {shipping.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Estimated Tax</span>
