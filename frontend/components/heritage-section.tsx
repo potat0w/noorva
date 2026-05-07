@@ -18,7 +18,7 @@ export function HeritageSection() {
       {/* Parallax background - converted to Next.js Image with lazy loading */}
       <motion.div style={{ y }} className="absolute inset-0 -top-20 -bottom-20">
         <Image
-          src="/italian-atelier-workshop-artisan-crafting-luxury-l.jpg"
+          src="/h5.jpg"
           alt="Heritage craftsmanship in Italian atelier"
           fill
           sizes="100vw"
@@ -37,26 +37,26 @@ export function HeritageSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <span className="text-xs tracking-[0.4em] uppercase text-background/70 mb-6 block">Our Heritage</span>
+            <span className="text-xs tracking-[0.4em] uppercase text-background/70 mb-6 block">Internationally Sourced</span>
             <h2 className="font-serif text-4xl lg:text-6xl text-background mb-8 leading-[1.15] text-balance">
-              Crafted with Intention,
+              Premium Products,
               <br />
-              Made in Italy
+              Selected with Purpose
             </h2>
             <p className="text-background/80 text-lg lg:text-xl leading-relaxed max-w-2xl mx-auto mb-12">
-              For over five generations, our artisans have perfected the art of quiet luxury. Each piece is meticulously
-              crafted in our Florence atelier, where tradition meets contemporary vision.
+              Every item in our collection is handpicked from international markets to ensure quality, functionality,
+              and timeless appeal.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-12 lg:gap-20">
+            <div className="flex flex-wrap justify-center gap-12 lg:gap-24">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <span className="font-serif text-4xl lg:text-5xl text-background block mb-2">1847</span>
-                <span className="text-xs tracking-[0.2em] uppercase text-background/60">Founded</span>
+                <span className="font-serif text-4xl lg:text-5xl text-background block mb-2">100%</span>
+                <span className="text-xs tracking-[0.2em] uppercase text-background/60">Carefully Selected</span>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -64,17 +64,8 @@ export function HeritageSection() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                <span className="font-serif text-4xl lg:text-5xl text-background block mb-2">5</span>
-                <span className="text-xs tracking-[0.2em] uppercase text-background/60">Generations</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <span className="font-serif text-4xl lg:text-5xl text-background block mb-2">200+</span>
-                <span className="text-xs tracking-[0.2em] uppercase text-background/60">Hours per Piece</span>
+                <span className="font-serif text-4xl lg:text-5xl text-background block mb-2">Fast</span>
+                <span className="text-xs tracking-[0.2em] uppercase text-background/60">Nationwide Delivery</span>
               </motion.div>
             </div>
           </motion.div>
