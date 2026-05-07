@@ -122,16 +122,41 @@ router.post('/login/admin', async (req, res) => {
 
 router.post('/login/google', async (req, res) => {
   try {
-    const { email, name } = req.body;
+    const { email, name, credential, idToken } = req.body;
+    let resolvedEmail = email;
+    let resolvedName = name;
+    const googleToken = credential || idToken;
 
-    if (!email) {
+    if (googleToken) {
+      const tokenResponse = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(googleToken)}`
+      );
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenResponse.ok) {
+        return res.status(401).json({ error: 'Invalid Google token' });
+      }
+
+      if (process.env.GOOGLE_CLIENT_ID && tokenData.aud !== process.env.GOOGLE_CLIENT_ID) {
+        return res.status(401).json({ error: 'Invalid Google client' });
+      }
+
+      if (tokenData.email_verified !== 'true') {
+        return res.status(401).json({ error: 'Google email is not verified' });
+      }
+
+      resolvedEmail = tokenData.email;
+      resolvedName = tokenData.name || tokenData.given_name;
+    }
+
+    if (!resolvedEmail) {
       return res.status(400).json({ error: 'Email is required' });
     }
 
     const { data: existingUser } = await supabase
       .from('users')
       .select('*')
-      .eq('email', email)
+      .eq('email', resolvedEmail)
       .single();
 
     let user = existingUser;
@@ -143,8 +168,8 @@ router.post('/login/google', async (req, res) => {
         .from('users')
         .insert([
           {
-            name: name || email.split('@')[0],
-            email,
+            name: resolvedName || resolvedEmail.split('@')[0],
+            email: resolvedEmail,
             password_hash,
             role: 'user',
           },

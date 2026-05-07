@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,10 +25,26 @@ export default function SignInPage() {
   const [signupEmail, setSignupEmail] = useState('')
   const [signupPassword, setSignupPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [googleReady, setGoogleReady] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const googleButtonRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     setMode(params.get('mode') === 'signup' ? 'signup' : 'login')
+  }, [])
+
+  useEffect(() => {
+    if ((window as any).google) {
+      setGoogleReady(true)
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = () => setGoogleReady(true)
+    document.head.appendChild(script)
   }, [])
 
   const switchMode = (nextMode: 'login' | 'signup') => {
@@ -41,6 +57,71 @@ export default function SignInPage() {
     }
     window.history.replaceState({}, '', `${url.pathname}${url.search}`)
   }
+
+  const handleGoogleCredential = async (response: { credential?: string }) => {
+    if (!response.credential) {
+      const message = 'Google sign in failed'
+      setError(message)
+      toast({
+        title: 'Google sign up failed',
+        description: message,
+      })
+      return
+    }
+    setGoogleLoading(true)
+    setError('')
+    setSuccess('')
+    try {
+      const apiResponse = await fetch(`${API_BASE_URL}/api/users/login/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential }),
+      })
+      const data = await apiResponse.json()
+      if (!apiResponse.ok) {
+        throw new Error(data.error || 'Google sign up failed')
+      }
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      setSuccess('Google sign up successful. Redirecting...')
+      toast({
+        title: 'Google sign up successful',
+        description: 'Welcome to Noorva.',
+      })
+      setTimeout(() => {
+        window.location.href = '/account'
+      }, 1000)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Google sign up failed'
+      setError(message)
+      toast({
+        title: 'Google sign up failed',
+        description: message,
+      })
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (mode !== 'signup') return
+    if (!googleReady) return
+    if (!googleButtonRef.current) return
+    const google = (window as any).google
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    if (!google || !googleClientId) return
+    google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: handleGoogleCredential,
+    })
+    googleButtonRef.current.innerHTML = ''
+    google.accounts.id.renderButton(googleButtonRef.current, {
+      theme: 'outline',
+      size: 'large',
+      text: 'signup_with',
+      width: 360,
+    })
+  }, [mode, googleReady])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -362,6 +443,18 @@ export default function SignInPage() {
                 <Button type="submit" disabled={isLoading} className="w-full h-11 rounded-none uppercase tracking-[0.25em] text-xs">
                   {isLoading ? 'Creating...' : 'Create account'}
                 </Button>
+                <div className="relative py-1">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-[10px] uppercase tracking-[0.25em]">
+                    <span className="bg-background px-3 text-muted-foreground">or</span>
+                  </div>
+                </div>
+                <div className="flex justify-center">
+                  <div ref={googleButtonRef} />
+                </div>
+                {googleLoading ? <p className="text-center text-xs text-muted-foreground">Connecting Google...</p> : null}
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   By creating an account you agree to our{' '}
                   <a href="#" className="text-foreground underline underline-offset-4">

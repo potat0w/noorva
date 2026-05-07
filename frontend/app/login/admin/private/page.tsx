@@ -214,7 +214,7 @@ export default function AdminLoginPage() {
                   setSuccess('')
                 }}
               >
-                Register
+                Sign up
               </Button>
             </div>
 
