@@ -105,8 +105,7 @@ export default function CheckoutPage() {
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
   const shipping = deliveryArea === "inside_dhaka" ? 60 : deliveryArea === "outside_dhaka" ? 150 : 0
-  const tax = Math.round(subtotal * 0.08)
-  const total = subtotal + shipping + tax
+  const total = subtotal + shipping
 
   const handlePlaceOrder = async () => {
     if (placingOrder || cartItems.length === 0) return
@@ -382,10 +381,6 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
                   <span>Tk {shipping.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Estimated Tax</span>
-                  <span>Tk {tax.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-base font-medium pt-3 border-t border-border">
                   <span>Total</span>
