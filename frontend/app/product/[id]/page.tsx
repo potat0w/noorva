@@ -478,8 +478,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <p className="text-xl">Tk {displayPrice.toLocaleString()}</p>
             </div>
 
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
-
             {hasColors && <ColorSelector colors={colorList} onSelect={setSelectedColor} />}
 
             <SizeSelector

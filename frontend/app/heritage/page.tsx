@@ -122,11 +122,16 @@ export default function HeritagePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="border border-border bg-muted/40 p-8 lg:p-12"
+            className="border border-border/60 bg-gradient-to-br from-background to-muted/30 p-8 lg:p-14 shadow-sm"
           >
-            <p className="text-lg lg:text-2xl text-center text-muted-foreground leading-relaxed">
-              What began as a neighborhood store has grown into a complete shopping experience. We continue to blend
-              personal service with modern convenience so every customer can shop with confidence.
+            <span className="block text-center text-[11px] tracking-[0.32em] uppercase text-muted-foreground/80 mb-5">
+              Our Story
+            </span>
+            <p className="font-serif text-2xl lg:text-4xl text-center leading-[1.45] text-foreground max-w-4xl mx-auto">
+              What began as a neighborhood store has grown into a complete shopping experience.
+            </p>
+            <p className="mt-4 text-center text-base lg:text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+              We continue to blend personal service with modern convenience so every customer can shop with confidence.
             </p>
           </motion.div>
 
@@ -202,42 +207,56 @@ export default function HeritagePage() {
         </div>
       </section>
 
-      {/* Values Section - converted to Next.js Image with lazy loading */}
-      <section className="py-20 lg:py-32 px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section className="relative py-20 lg:py-32 px-6 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="https://res.cloudinary.com/dw1n6qugv/image/upload/v1778169096/pexels-sidhiqul-akbar-68655043-22034285_ulbf5t.jpg"
+            alt="Our philosophy background"
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-background/80" />
+        </div>
+        <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16 lg:mb-24"
+            className="text-center mb-14 lg:mb-20"
           >
             <span className="text-xs tracking-[0.4em] uppercase text-muted-foreground mb-4 block">Our Philosophy</span>
             <h2 className="font-serif text-3xl lg:text-5xl">What We Believe In</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+          <div className="space-y-6">
             {values.map((value, index) => (
-              <motion.div
+              <motion.article
                 key={value.title}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="group"
+                transition={{ duration: 0.55, delay: index * 0.08 }}
+                className="border border-border bg-muted/40 p-6 md:p-8"
               >
-                <div className="aspect-[5/6] overflow-hidden mb-6 relative">
-                  <Image
-                    src={value.image || "/placeholder.svg"}
-                    alt={value.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    loading="lazy"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-8">
+                  <div className="max-w-2xl">
+                    <span className="text-[11px] tracking-[0.28em] uppercase text-foreground/60">Noorva Promise</span>
+                    <h3 className="mt-2 font-serif text-2xl lg:text-3xl text-foreground">{value.title}</h3>
+                    <p className="mt-3 text-sm lg:text-base text-foreground/75 leading-relaxed">{value.description}</p>
+                  </div>
+                  <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border border-foreground/10 self-start md:self-auto bg-background/50">
+                    <Image
+                      src={value.image || "/placeholder.svg"}
+                      alt={value.title}
+                      fill
+                      sizes="(max-width: 768px) 112px, 144px"
+                      loading="lazy"
+                      className="object-cover"
+                    />
+                  </div>
                 </div>
-                <h3 className="font-serif text-xl lg:text-2xl mb-3">{value.title}</h3>
-                <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">{value.description}</p>
-              </motion.div>
+              </motion.article>
             ))}
           </div>
         </div>
