@@ -130,7 +130,7 @@ export default function CheckoutPage() {
         })
         return
       }
-      const bdPhoneRegex = /^(?:\+8801|01)\d{9}$/
+      const bdPhoneRegex = /^1\d{9}$/
       if (!bdPhoneRegex.test(phone.trim())) {
         const message = "Enter a valid Bangladesh phone number."
         setCheckoutMessage(message)
@@ -147,7 +147,7 @@ export default function CheckoutPage() {
         total_price: total,
         status: "pending",
         full_name: `${firstName} ${lastName}`.trim(),
-        phone: phone.trim(),
+        phone: `+880${phone.trim()}`,
         address,
         city: deliveryArea === "inside_dhaka" ? "Inside Dhaka" : "Outside Dhaka",
         postal_code: zip.trim(),
@@ -239,14 +239,19 @@ export default function CheckoutPage() {
                     <Label htmlFor="phone" className="text-xs tracking-wide">
                       Phone Number (Bangladesh)
                     </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="mt-1.5 border-border/50 focus:border-foreground"
-                      placeholder="01XXXXXXXXX or +8801XXXXXXXXX"
-                    />
+                    <div className="mt-1.5 flex">
+                      <div className="flex h-10 items-center rounded-l-md border border-r-0 border-border/50 bg-muted px-3 text-sm text-muted-foreground">
+                        +880
+                      </div>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        className="rounded-l-none border-border/50 focus:border-foreground"
+                        placeholder="1XXXXXXXXX"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
