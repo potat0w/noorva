@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, Inter, Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { SmoothScrollProvider } from "@/components/smooth-scroll-provider"
+import { Toaster } from "@/components/ui/toaster"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -48,6 +49,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body suppressHydrationWarning className={`font-sans antialiased`}>
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <Toaster />
         <Analytics />
       </body>
     </html>

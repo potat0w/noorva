@@ -7,6 +7,7 @@ import { X, Minus, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { API_BASE_URL } from "@/lib/api"
+import { toast } from "@/hooks/use-toast"
 
 interface MiniCartProps {
   isOpen: boolean
@@ -130,6 +131,10 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
       window.dispatchEvent(new Event("cart-updated"))
     } catch {
       setError("Failed to refresh cart")
+      toast({
+        title: "Cart refresh failed",
+        description: "Could not refresh your shopping bag.",
+      })
     }
   }
 
@@ -155,8 +160,17 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
         }
       }
       await refreshCart()
+      toast({
+        title: nextQuantity <= 0 ? "Item removed" : "Cart updated",
+        description: nextQuantity <= 0 ? "Item removed from your bag." : "Item quantity updated.",
+      })
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to update quantity")
+      const message = e instanceof Error ? e.message : "Failed to update quantity"
+      setError(message)
+      toast({
+        title: "Cart update failed",
+        description: message,
+      })
     }
   }
 

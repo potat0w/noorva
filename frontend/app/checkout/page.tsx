@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { API_BASE_URL } from "@/lib/api"
+import { toast } from "@/hooks/use-toast"
 
 interface VariantImage {
   image_url: string
@@ -43,7 +44,6 @@ interface CartItem {
 }
 
 export default function CheckoutPage() {
-  const [step, setStep] = useState<"shipping" | "payment">("shipping")
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loadingCart, setLoadingCart] = useState(true)
   const [checkoutMessage, setCheckoutMessage] = useState("")
@@ -54,6 +54,7 @@ export default function CheckoutPage() {
   const [lastName, setLastName] = useState("")
   const [address, setAddress] = useState("")
   const [city, setCity] = useState("")
+  const [stateProvince, setStateProvince] = useState("")
   const [zip, setZip] = useState("")
 
   useEffect(() => {
@@ -121,6 +122,25 @@ export default function CheckoutPage() {
         window.location.href = "/signin"
         return
       }
+      if (!email || !firstName || !lastName || !phone || !address || !city || !stateProvince) {
+        const message = "Please complete all required shipping fields."
+        setCheckoutMessage(message)
+        toast({
+          title: "Order not placed",
+          description: message,
+        })
+        return
+      }
+      const bdPhoneRegex = /^(?:\+8801|01)\d{9}$/
+      if (!bdPhoneRegex.test(phone.trim())) {
+        const message = "Enter a valid Bangladesh phone number."
+        setCheckoutMessage(message)
+        toast({
+          title: "Invalid phone number",
+          description: message,
+        })
+        return
+      }
       setPlacingOrder(true)
       setCheckoutMessage("")
       const payload = {
@@ -128,10 +148,10 @@ export default function CheckoutPage() {
         total_price: total,
         status: "pending",
         full_name: `${firstName} ${lastName}`.trim(),
-        phone,
+        phone: phone.trim(),
         address,
-        city,
-        postal_code: zip,
+        city: `${city.trim()}, ${stateProvince.trim()}`,
+        postal_code: zip.trim(),
         items: cartItems.map((item) => ({
           product_id: item.productId,
           quantity: item.quantity,
@@ -148,9 +168,18 @@ export default function CheckoutPage() {
         throw new Error(data.error || "Failed to place order")
       }
       setCheckoutMessage("Order placed successfully.")
+      toast({
+        title: "Order placed",
+        description: "Your order has been placed successfully.",
+      })
       setCartItems([])
     } catch (error) {
-      setCheckoutMessage(error instanceof Error ? error.message : "Failed to place order")
+      const message = error instanceof Error ? error.message : "Failed to place order"
+      setCheckoutMessage(message)
+      toast({
+        title: "Order failed",
+        description: message,
+      })
     } finally {
       setPlacingOrder(false)
     }
@@ -170,7 +199,7 @@ export default function CheckoutPage() {
               Continue Shopping
             </Link>
             <Link href="/" className="font-serif text-xl lg:text-2xl tracking-[0.3em] uppercase">
-              Maison
+              Noorva
             </Link>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Lock className="h-4 w-4" />
@@ -184,220 +213,132 @@ export default function CheckoutPage() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Left - Forms */}
           <div className="order-2 lg:order-1">
-            {/* Steps indicator */}
-            <div className="flex items-center gap-4 mb-10">
-              <button
-                onClick={() => setStep("shipping")}
-                className={`text-sm tracking-[0.15em] uppercase transition-colors ${
-                  step === "shipping" ? "text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                Shipping
-              </button>
-              <div className="h-px w-8 bg-border" />
-              <button
-                onClick={() => setStep("payment")}
-                className={`text-sm tracking-[0.15em] uppercase transition-colors ${
-                  step === "payment" ? "text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                Payment
-              </button>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <h2 className="font-serif text-2xl mb-8">Shipping Information</h2>
 
-            {step === "shipping" && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                <h2 className="font-serif text-2xl mb-8">Shipping Information</h2>
-
-                {/* Contact */}
-                <div className="mb-8">
-                  <h3 className="text-sm tracking-[0.1em] uppercase text-muted-foreground mb-4">Contact</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="email" className="text-xs tracking-wide">
-                        Email Address
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="mt-1.5 border-border/50 focus:border-foreground"
-                        placeholder="your@email.com"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone" className="text-xs tracking-wide">
-                        Phone Number
-                      </Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="mt-1.5 border-border/50 focus:border-foreground"
-                        placeholder="+1 (555) 000-0000"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Address */}
-                <div className="mb-8">
-                  <h3 className="text-sm tracking-[0.1em] uppercase text-muted-foreground mb-4">Shipping Address</h3>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="firstName" className="text-xs tracking-wide">
-                          First Name
-                        </Label>
-                        <Input
-                          id="firstName"
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          className="mt-1.5 border-border/50 focus:border-foreground"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="lastName" className="text-xs tracking-wide">
-                          Last Name
-                        </Label>
-                        <Input
-                          id="lastName"
-                          value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
-                          className="mt-1.5 border-border/50 focus:border-foreground"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="address" className="text-xs tracking-wide">
-                        Address
-                      </Label>
-                      <Input
-                        id="address"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        className="mt-1.5 border-border/50 focus:border-foreground"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="apartment" className="text-xs tracking-wide">
-                        Apartment, suite, etc. (optional)
-                      </Label>
-                      <Input id="apartment" className="mt-1.5 border-border/50 focus:border-foreground" />
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="city" className="text-xs tracking-wide">
-                          City
-                        </Label>
-                        <Input
-                          id="city"
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          className="mt-1.5 border-border/50 focus:border-foreground"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="state" className="text-xs tracking-wide">
-                          State
-                        </Label>
-                        <Input id="state" className="mt-1.5 border-border/50 focus:border-foreground" />
-                      </div>
-                      <div>
-                        <Label htmlFor="zip" className="text-xs tracking-wide">
-                          ZIP Code
-                        </Label>
-                        <Input
-                          id="zip"
-                          value={zip}
-                          onChange={(e) => setZip(e.target.value)}
-                          className="mt-1.5 border-border/50 focus:border-foreground"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <Button onClick={() => setStep("payment")} className="w-full py-6 text-sm tracking-[0.2em] uppercase">
-                  Continue to Payment
-                </Button>
-              </motion.div>
-            )}
-
-            {step === "payment" && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}>
-                <h2 className="font-serif text-2xl mb-8">Payment Details</h2>
-
-                <div className="space-y-4 mb-8">
+              <div className="mb-8">
+                <h3 className="text-sm tracking-[0.1em] uppercase text-muted-foreground mb-4">Contact</h3>
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="cardName" className="text-xs tracking-wide">
-                      Name on Card
-                    </Label>
-                    <Input id="cardName" className="mt-1.5 border-border/50 focus:border-foreground" />
-                  </div>
-                  <div>
-                    <Label htmlFor="cardNumber" className="text-xs tracking-wide">
-                      Card Number
+                    <Label htmlFor="email" className="text-xs tracking-wide">
+                      Email Address
                     </Label>
                     <Input
-                      id="cardNumber"
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="mt-1.5 border-border/50 focus:border-foreground"
-                      placeholder="1234 5678 9012 3456"
+                      placeholder="your@email.com"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="phone" className="text-xs tracking-wide">
+                      Phone Number (Bangladesh)
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="mt-1.5 border-border/50 focus:border-foreground"
+                      placeholder="01XXXXXXXXX or +8801XXXXXXXXX"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="text-sm tracking-[0.1em] uppercase text-muted-foreground mb-4">Shipping Address</h3>
+                <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="expiry" className="text-xs tracking-wide">
-                        Expiry Date
+                      <Label htmlFor="firstName" className="text-xs tracking-wide">
+                        First Name
                       </Label>
                       <Input
-                        id="expiry"
+                        id="firstName"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
                         className="mt-1.5 border-border/50 focus:border-foreground"
-                        placeholder="MM / YY"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="cvc" className="text-xs tracking-wide">
-                        CVC
+                      <Label htmlFor="lastName" className="text-xs tracking-wide">
+                        Last Name
                       </Label>
-                      <Input id="cvc" className="mt-1.5 border-border/50 focus:border-foreground" placeholder="123" />
+                      <Input
+                        id="lastName"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="mt-1.5 border-border/50 focus:border-foreground"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="address" className="text-xs tracking-wide">
+                      Address
+                    </Label>
+                    <Input
+                      id="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="mt-1.5 border-border/50 focus:border-foreground"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="city" className="text-xs tracking-wide">
+                        District / City
+                      </Label>
+                      <Input
+                        id="city"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className="mt-1.5 border-border/50 focus:border-foreground"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="stateProvince" className="text-xs tracking-wide">
+                        State / Province
+                      </Label>
+                      <Input
+                        id="stateProvince"
+                        value={stateProvince}
+                        onChange={(e) => setStateProvince(e.target.value)}
+                        className="mt-1.5 border-border/50 focus:border-foreground"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="zip" className="text-xs tracking-wide">
+                        Postal Code
+                      </Label>
+                      <Input
+                        id="zip"
+                        value={zip}
+                        onChange={(e) => setZip(e.target.value)}
+                        className="mt-1.5 border-border/50 focus:border-foreground"
+                      />
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="border border-border p-4 mb-8">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    By placing your order, you agree to our{" "}
-                    <Link href="#" className="underline underline-offset-2">
-                      Terms of Service
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="#" className="underline underline-offset-2">
-                      Privacy Policy
-                    </Link>
-                    .
-                  </p>
-                </div>
+              <div className="border border-border p-4 mb-8">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Payment Method: Cash on Delivery (COD).
+                </p>
+              </div>
 
-                <Button onClick={handlePlaceOrder} disabled={placingOrder || cartItems.length === 0} className="w-full py-6 text-sm tracking-[0.2em] uppercase">
-                  {placingOrder ? "Placing Order..." : `Place Order — Tk ${total.toLocaleString()}`}
-                </Button>
-                {checkoutMessage ? <p className="mt-4 text-sm text-center">{checkoutMessage}</p> : null}
-
-                <button
-                  onClick={() => setStep("shipping")}
-                  className="w-full mt-4 text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Back to Shipping
-                </button>
-              </motion.div>
-            )}
+              <Button onClick={handlePlaceOrder} disabled={placingOrder || cartItems.length === 0} className="w-full py-6 text-sm tracking-[0.2em] uppercase">
+                {placingOrder ? "Placing Order..." : `Place Order — Tk ${total.toLocaleString()}`}
+              </Button>
+              {checkoutMessage ? <p className="mt-4 text-sm text-center">{checkoutMessage}</p> : null}
+            </motion.div>
           </div>
 
           {/* Right - Order Summary - converted to Next.js Image with lazy loading */}

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { API_BASE_URL } from '@/lib/api'
+import { toast } from '@/hooks/use-toast'
 
 export default function AdminLoginPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
@@ -44,11 +45,20 @@ export default function AdminLoginPage() {
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
       setSuccess('Admin login successful. Redirecting...')
+      toast({
+        title: 'Admin signed in',
+        description: 'Welcome to the admin dashboard.',
+      })
       setTimeout(() => {
         window.location.href = '/account'
       }, 1000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Admin login failed')
+      const message = err instanceof Error ? err.message : 'Admin login failed'
+      setError(message)
+      toast({
+        title: 'Admin sign in failed',
+        description: message,
+      })
     } finally {
       setIsLoading(false)
     }
@@ -61,12 +71,22 @@ export default function AdminLoginPage() {
     setSuccess('')
 
     if (signupPassword !== confirmPassword) {
-      setError('Passwords do not match')
+      const message = 'Passwords do not match'
+      setError(message)
+      toast({
+        title: 'Admin signup failed',
+        description: message,
+      })
       setIsLoading(false)
       return
     }
     if (signupPassword.length < 6) {
-      setError('Password must be at least 6 characters long')
+      const message = 'Password must be at least 6 characters long'
+      setError(message)
+      toast({
+        title: 'Admin signup failed',
+        description: message,
+      })
       setIsLoading(false)
       return
     }
@@ -100,11 +120,20 @@ export default function AdminLoginPage() {
       localStorage.setItem('token', loginData.token)
       localStorage.setItem('user', JSON.stringify(loginData.user))
       setSuccess('Admin account created. Redirecting...')
+      toast({
+        title: 'Admin account created',
+        description: 'Admin account created successfully.',
+      })
       setTimeout(() => {
         window.location.href = '/account'
       }, 1000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Admin signup failed')
+      const message = err instanceof Error ? err.message : 'Admin signup failed'
+      setError(message)
+      toast({
+        title: 'Admin signup failed',
+        description: message,
+      })
     } finally {
       setIsLoading(false)
     }

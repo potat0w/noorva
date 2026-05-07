@@ -14,6 +14,7 @@ import { ColorSelector } from "@/components/color-selector"
 import { ProductDetailsAccordion } from "@/components/product-details-accordion"
 import { ChevronRight } from "lucide-react"
 import { API_BASE_URL } from "@/lib/api"
+import { toast } from "@/hooks/use-toast"
 
 interface VariantImage {
   image_url: string
@@ -187,9 +188,18 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         throw new Error(data.error || "Failed to add item to bag")
       }
       setCartMessage("Added to bag.")
+      toast({
+        title: "Added to bag",
+        description: `${product.title} added to your cart.`,
+      })
       window.dispatchEvent(new Event("cart-updated"))
     } catch (error) {
-      setCartMessage(error instanceof Error ? error.message : "Failed to add item to bag")
+      const message = error instanceof Error ? error.message : "Failed to add item to bag"
+      setCartMessage(message)
+      toast({
+        title: "Add to bag failed",
+        description: message,
+      })
     } finally {
       setIsAddingToBag(false)
     }

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { API_BASE_URL } from '@/lib/api'
+import { toast } from '@/hooks/use-toast'
 
 export default function SignInPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
@@ -49,11 +50,20 @@ export default function SignInPage() {
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
       setSuccess('Signed in. Redirecting...')
+      toast({
+        title: 'Signed in',
+        description: 'Welcome back to Noorva.',
+      })
       setTimeout(() => {
         window.location.href = '/account'
       }, 1000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      const message = err instanceof Error ? err.message : 'Login failed'
+      setError(message)
+      toast({
+        title: 'Sign in failed',
+        description: message,
+      })
     } finally {
       setIsLoading(false)
     }
@@ -66,12 +76,22 @@ export default function SignInPage() {
     setSuccess('')
 
     if (signupPassword !== confirmPassword) {
-      setError('Passwords do not match')
+      const message = 'Passwords do not match'
+      setError(message)
+      toast({
+        title: 'Sign up failed',
+        description: message,
+      })
       setIsLoading(false)
       return
     }
     if (signupPassword.length < 8) {
-      setError('Password must be at least 8 characters long')
+      const message = 'Password must be at least 8 characters long'
+      setError(message)
+      toast({
+        title: 'Sign up failed',
+        description: message,
+      })
       setIsLoading(false)
       return
     }
@@ -100,11 +120,20 @@ export default function SignInPage() {
       localStorage.setItem('token', loginData.token)
       localStorage.setItem('user', JSON.stringify(loginData.user))
       setSuccess('Account created. Redirecting...')
+      toast({
+        title: 'Account created',
+        description: 'Your account has been created successfully.',
+      })
       setTimeout(() => {
         window.location.href = '/account'
       }, 1000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signup failed')
+      const message = err instanceof Error ? err.message : 'Signup failed'
+      setError(message)
+      toast({
+        title: 'Sign up failed',
+        description: message,
+      })
     } finally {
       setIsLoading(false)
     }

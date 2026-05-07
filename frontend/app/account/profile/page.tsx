@@ -9,6 +9,7 @@ import { Navigation } from "@/components/navigation"
 import { PremiumFooter } from "@/components/premium-footer"
 import { AccountSidebar } from "@/components/account-sidebar"
 import { API_BASE_URL } from "@/lib/api"
+import { toast } from "@/hooks/use-toast"
 
 interface UserData {
   id: string
@@ -56,12 +57,22 @@ export default function ProfilePage() {
     setPasswordSuccess("")
 
     if (newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters long")
+      const message = "New password must be at least 8 characters long"
+      setPasswordError(message)
+      toast({
+        title: "Update failed",
+        description: message,
+      })
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordError("New passwords do not match")
+      const message = "New passwords do not match"
+      setPasswordError(message)
+      toast({
+        title: "Update failed",
+        description: message,
+      })
       return
     }
 
@@ -89,11 +100,20 @@ export default function ProfilePage() {
         throw new Error(data.error || "Failed to update password")
       }
       setPasswordSuccess("Password updated successfully")
+      toast({
+        title: "Password updated",
+        description: "Your password has been updated successfully.",
+      })
       setCurrentPassword("")
       setNewPassword("")
       setConfirmPassword("")
     } catch (error) {
-      setPasswordError(error instanceof Error ? error.message : "Failed to update password")
+      const message = error instanceof Error ? error.message : "Failed to update password"
+      setPasswordError(message)
+      toast({
+        title: "Update failed",
+        description: message,
+      })
     } finally {
       setIsUpdatingPassword(false)
     }
