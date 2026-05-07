@@ -86,7 +86,7 @@ export default function ShopPage() {
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/shop-hero-luxury-fashion-collection.jpg"
+            src="/allp.png"
             alt="Shop collection"
             fill
             sizes="100vw"
