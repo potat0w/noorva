@@ -263,7 +263,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>Tk {subtotal.toLocaleString()}</span>
               </div>
-              <p className="text-xs text-muted-foreground">Shipping and taxes calculated at checkout</p>
+              <p className="text-xs text-muted-foreground">Shipping calculated at checkout</p>
               <Link href="/checkout" onClick={onClose}>
                 <Button className="w-full py-6 text-sm tracking-[0.2em] uppercase">Proceed to Checkout</Button>
               </Link>

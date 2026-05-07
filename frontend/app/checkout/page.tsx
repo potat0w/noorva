@@ -388,12 +388,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="mt-8 p-4 bg-muted">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  All orders include complimentary shipping and signature gift packaging. Expected delivery within 5-7
-                  business days.
-                </p>
-              </div>
             </div>
           </div>
         </div>
