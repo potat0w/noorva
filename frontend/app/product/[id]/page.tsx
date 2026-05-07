@@ -91,6 +91,23 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [deletingReview, setDeletingReview] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
+  const loadReviews = async () => {
+    setReviewsLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/reviews/product/${id}`)
+      const data = (await response.json()) as ReviewApi[]
+      if (!response.ok) {
+        setReviews([])
+        return
+      }
+      setReviews(Array.isArray(data) ? data : [])
+    } catch {
+      setReviews([])
+    } finally {
+      setReviewsLoading(false)
+    }
+  }
+
   useEffect(() => {
     const loadProduct = async () => {
       try {
@@ -137,23 +154,23 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }, [])
 
   useEffect(() => {
-    const loadReviews = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/reviews/product/${id}`)
-        const data = (await response.json()) as ReviewApi[]
-        if (!response.ok) {
-          setReviews([])
-          return
-        }
-        setReviews(Array.isArray(data) ? data : [])
-      } catch {
-        setReviews([])
-      } finally {
-        setReviewsLoading(false)
-      }
-    }
     loadReviews()
   }, [id])
+
+  const averageRating = reviews.length
+    ? reviews.reduce((sum, review) => sum + (Number(review.rating) || 0), 0) / reviews.length
+    : 0
+  const existingReview = reviews.find((review) => review.user_id === currentUserId) || null
+
+  useEffect(() => {
+    if (!existingReview) {
+      setReviewRating(0)
+      setReviewComment("")
+      return
+    }
+    setReviewRating(Number(existingReview.rating) || 0)
+    setReviewComment(existingReview.comment || "")
+  }, [existingReview])
 
   if (!loading && !product) {
     notFound()
@@ -189,11 +206,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       available: (variant.stock || 0) > 0,
     }))
   const hasColors = colorList.length > 0
-  const averageRating = reviews.length
-    ? reviews.reduce((sum, review) => sum + (Number(review.rating) || 0), 0) / reviews.length
-    : 0
-  const existingReview = reviews.find((review) => review.user_id === currentUserId) || null
-
   const accordionItems = [
     {
       title: "Details",
@@ -261,33 +273,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       })
     } finally {
       setIsAddingToBag(false)
-    }
-  }
-
-  useEffect(() => {
-    if (!existingReview) {
-      setReviewRating(0)
-      setReviewComment("")
-      return
-    }
-    setReviewRating(Number(existingReview.rating) || 0)
-    setReviewComment(existingReview.comment || "")
-  }, [existingReview?.id])
-
-  const loadReviews = async () => {
-    setReviewsLoading(true)
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/reviews/product/${id}`)
-      const data = (await response.json()) as ReviewApi[]
-      if (!response.ok) {
-        setReviews([])
-        return
-      }
-      setReviews(Array.isArray(data) ? data : [])
-    } catch {
-      setReviews([])
-    } finally {
-      setReviewsLoading(false)
     }
   }
 
