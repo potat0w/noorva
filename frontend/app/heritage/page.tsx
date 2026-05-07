@@ -229,7 +229,7 @@ export default function HeritagePage() {
             <h2 className="font-serif text-3xl lg:text-5xl">What We Believe In</h2>
           </motion.div>
 
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {values.map((value, index) => (
               <motion.article
                 key={value.title}
@@ -239,22 +239,10 @@ export default function HeritagePage() {
                 transition={{ duration: 0.55, delay: index * 0.08 }}
                 className="border border-border bg-muted/40 p-6 md:p-8"
               >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-8">
-                  <div className="max-w-2xl">
-                    <span className="text-[11px] tracking-[0.28em] uppercase text-foreground/60">Noorva Promise</span>
-                    <h3 className="mt-2 font-serif text-2xl lg:text-3xl text-foreground">{value.title}</h3>
-                    <p className="mt-3 text-sm lg:text-base text-foreground/75 leading-relaxed">{value.description}</p>
-                  </div>
-                  <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border border-foreground/10 self-start md:self-auto bg-background/50">
-                    <Image
-                      src={value.image || "/placeholder.svg"}
-                      alt={value.title}
-                      fill
-                      sizes="(max-width: 768px) 112px, 144px"
-                      loading="lazy"
-                      className="object-cover"
-                    />
-                  </div>
+                <div className="max-w-2xl">
+                  <span className="text-[11px] tracking-[0.28em] uppercase text-foreground/60">Noorva Promise</span>
+                  <h3 className="mt-2 font-serif text-2xl lg:text-3xl text-foreground">{value.title}</h3>
+                  <p className="mt-3 text-sm lg:text-base text-foreground/75 leading-relaxed">{value.description}</p>
                 </div>
               </motion.article>
             ))}
