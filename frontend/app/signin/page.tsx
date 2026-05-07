@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { API_BASE_URL } from '@/lib/api'
 
 export default function SignInPage() {
   const searchParams = useSearchParams()
@@ -37,7 +38,7 @@ export default function SignInPage() {
     setSuccess('')
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/login', {
+      const response = await fetch(`${API_BASE_URL}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -77,7 +78,7 @@ export default function SignInPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/register', {
+      const response = await fetch(`${API_BASE_URL}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: signupName, email: signupEmail, password: signupPassword }),
@@ -87,7 +88,7 @@ export default function SignInPage() {
         throw new Error(data.error || 'Signup failed')
       }
 
-      const loginResponse = await fetch('http://localhost:5000/api/users/login', {
+      const loginResponse = await fetch(`${API_BASE_URL}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: signupEmail, password: signupPassword }),

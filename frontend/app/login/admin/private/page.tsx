@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { API_BASE_URL } from '@/lib/api'
 
 export default function AdminLoginPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
@@ -31,7 +32,7 @@ export default function AdminLoginPage() {
     setSuccess('')
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/login/admin', {
+      const response = await fetch(`${API_BASE_URL}/api/users/login/admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -71,7 +72,7 @@ export default function AdminLoginPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/register', {
+      const response = await fetch(`${API_BASE_URL}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,7 +87,7 @@ export default function AdminLoginPage() {
         throw new Error(data.error || 'Admin signup failed')
       }
 
-      const loginResponse = await fetch('http://localhost:5000/api/users/login/admin', {
+      const loginResponse = await fetch(`${API_BASE_URL}/api/users/login/admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: signupEmail, password: signupPassword }),

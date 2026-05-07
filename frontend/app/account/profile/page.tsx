@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Navigation } from "@/components/navigation"
 import { PremiumFooter } from "@/components/premium-footer"
 import { AccountSidebar } from "@/components/account-sidebar"
+import { API_BASE_URL } from "@/lib/api"
 
 interface UserData {
   id: string
@@ -72,7 +73,7 @@ export default function ProfilePage() {
 
     setIsUpdatingPassword(true)
     try {
-      const response = await fetch("http://localhost:5000/api/users/change-password", {
+      const response = await fetch(`${API_BASE_URL}/api/users/change-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
