@@ -271,10 +271,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     size,
     available: scopedVariants.some((variant) => getVariantSize(variant) === size && (variant.stock || 0) > 0),
   }))
+  const detailContent = (product.description || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
   const accordionItems = [
     {
       title: "Details",
-      content: [product.description || "No additional details available."],
+      content: detailContent.length ? detailContent : ["No additional details available."],
     },
     {
       title: "Materials",
