@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { Instagram, Facebook, Twitter } from "lucide-react"
+import { Instagram, Facebook } from "lucide-react"
 
 export function PremiumFooter() {
   const footerLinks = {
@@ -40,20 +40,25 @@ export function PremiumFooter() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-1"
           >
-            <h3 className="font-serif text-xl mb-4">Stay Connected</h3>
-            <p className="text-background/60 text-sm mb-6 leading-relaxed">
-              Subscribe for exclusive access to new collections and private events.
-            </p>
-            <div className="relative">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full bg-transparent border-0 border-b border-background/30 py-3 text-sm placeholder:text-background/40 focus:outline-none focus:border-background transition-colors"
-              />
-              <button className="absolute right-0 top-1/2 -translate-y-1/2 text-xs tracking-[0.15em] uppercase hover:opacity-60 transition-opacity">
-                Subscribe
-              </button>
-            </div>
+            <h3 className="font-serif text-xl mb-4">Contact Info</h3>
+            <ul className="space-y-3 text-sm text-background/80 leading-relaxed">
+              <li>Location: Dhaka, Dhaka, Bangladesh</li>
+              <li>
+                <a href="mailto:annnoor567@gmail.com" className="hover:text-background transition-colors">
+                  Email: annnoor567@gmail.com
+                </a>
+              </li>
+              <li>
+                <a href="tel:+8801322708213" className="hover:text-background transition-colors">
+                  Phone (international): +880 1322-708213
+                </a>
+              </li>
+              <li>
+                <a href="https://m.facebook.com/noorva00/" className="hover:text-background transition-colors">
+                  WhatsApp/Messenger: Noorva-নূরভা
+                </a>
+              </li>
+            </ul>
           </motion.div>
 
           {/* Shop links */}
@@ -121,14 +126,11 @@ export function PremiumFooter() {
               Noorva
             </Link>
             <div className="flex items-center gap-4">
-              <a href="https://instagram.com" className="hover:opacity-60 transition-opacity" aria-label="Instagram">
+              <a href="https://www.instagram.com/noorva99/" className="hover:opacity-60 transition-opacity" aria-label="Instagram">
                 <Instagram className="h-4 w-4 stroke-[1.5]" />
               </a>
-              <a href="https://facebook.com" className="hover:opacity-60 transition-opacity" aria-label="Facebook">
+              <a href="https://m.facebook.com/noorva00/" className="hover:opacity-60 transition-opacity" aria-label="Facebook">
                 <Facebook className="h-4 w-4 stroke-[1.5]" />
-              </a>
-              <a href="https://twitter.com" className="hover:opacity-60 transition-opacity" aria-label="Twitter">
-                <Twitter className="h-4 w-4 stroke-[1.5]" />
               </a>
             </div>
           </div>

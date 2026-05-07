@@ -128,11 +128,10 @@ export default function HeritagePage() {
               Our Story
             </span>
             <p className="font-serif text-2xl lg:text-4xl text-center leading-[1.45] text-foreground max-w-4xl mx-auto">
-              What began as a neighborhood store has grown into a complete shopping experience.
+              "From a small local shop to an online store, our journey has always been about trust, quality, and
+              customer satisfaction."
             </p>
-            <p className="mt-4 text-center text-base lg:text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-              We continue to blend personal service with modern convenience so every customer can shop with confidence.
-            </p>
+            <p className="mt-5 text-center text-sm tracking-[0.2em] uppercase text-muted-foreground">- Team Noorva</p>
           </motion.div>
 
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -291,28 +290,6 @@ export default function HeritagePage() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Quote Section */}
-      <section className="py-20 lg:py-32 px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.blockquote
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <p className="font-serif text-2xl lg:text-4xl leading-relaxed mb-8 text-balance">
-              "From a small local shop to an online store, our journey has always been about trust, quality, and
-              customer satisfaction."
-            </p>
-            <cite className="not-italic">
-              <span className="block text-sm tracking-[0.2em] uppercase text-muted-foreground">
-                - Team Noorva
-              </span>
-            </cite>
-          </motion.blockquote>
         </div>
       </section>
 
