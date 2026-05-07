@@ -17,7 +17,7 @@ export function HeroSection() {
           transition={{ duration: 1, delay: 0.5 }}
           className="text-background -rotate-90 whitespace-nowrap"
         >
-          <span className="text-xs tracking-[0.3em] uppercase">Autumn / Winter 2026</span>
+          <span className="text-xs tracking-[0.3em] uppercase">Monsoon Collection 2026</span>
         </motion.div>
       </div>
 

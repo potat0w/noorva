@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
@@ -10,6 +9,7 @@ import { PremiumFooter } from "@/components/premium-footer"
 import { ArrowRight } from "lucide-react"
 import { API_BASE_URL } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { toast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -41,6 +41,8 @@ interface ProductCard {
   hoverImage: string
 }
 
+type SortOption = "featured" | "name-asc" | "name-desc" | "price-low" | "price-high"
+
 const PLACEHOLDER_IMAGE = "/placeholder.svg"
 
 const toProductCard = (product: ProductApi): ProductCard => {
@@ -61,6 +63,8 @@ export default function ShopPage() {
   const [products, setProducts] = useState<ProductCard[]>([])
   const [loading, setLoading] = useState(true)
   const [addingProductId, setAddingProductId] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [sortBy, setSortBy] = useState<SortOption>("featured")
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -81,6 +85,24 @@ export default function ShopPage() {
 
     loadProducts()
   }, [])
+
+  const filteredSortedProducts = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+    const filtered = normalizedSearch
+      ? products.filter((product) => product.name.toLowerCase().includes(normalizedSearch))
+      : products
+
+    if (sortBy === "featured") {
+      return filtered
+    }
+
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "name-asc") return a.name.localeCompare(b.name)
+      if (sortBy === "name-desc") return b.name.localeCompare(a.name)
+      if (sortBy === "price-low") return a.price - b.price
+      return b.price - a.price
+    })
+  }, [products, searchTerm, sortBy])
 
   const handleAddToCart = async (product: ProductCard) => {
     if (addingProductId === product.id) return
@@ -161,6 +183,34 @@ export default function ShopPage() {
 
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6">
+          <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="w-full md:max-w-md">
+              <Input
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search products"
+                className="h-11 rounded-none border-muted-foreground/20"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <label htmlFor="sort-products" className="text-sm text-muted-foreground">
+                Sort by
+              </label>
+              <select
+                id="sort-products"
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value as SortOption)}
+                className="h-11 min-w-[180px] border border-input bg-background px-3 text-sm"
+              >
+                <option value="featured">Featured</option>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="price-low">Price (Low to High)</option>
+                <option value="price-high">Price (High to Low)</option>
+              </select>
+            </div>
+          </div>
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-10">
               {Array.from({ length: 8 }).map((_, index) => (
@@ -176,6 +226,8 @@ export default function ShopPage() {
             </div>
           ) : products.length === 0 ? (
             <div className="text-center text-muted-foreground">No products found</div>
+          ) : filteredSortedProducts.length === 0 ? (
+            <div className="text-center text-muted-foreground">No products match your search</div>
           ) : (
             <AnimatePresence mode="wait">
             <motion.div
@@ -186,7 +238,7 @@ export default function ShopPage() {
               transition={{ duration: 0.4 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-10"
             >
-              {products.map((product, index) => (
+              {filteredSortedProducts.map((product, index) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 20 }}
