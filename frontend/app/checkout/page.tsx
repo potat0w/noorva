@@ -53,8 +53,7 @@ export default function CheckoutPage() {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [address, setAddress] = useState("")
-  const [city, setCity] = useState("")
-  const [stateProvince, setStateProvince] = useState("")
+  const [deliveryArea, setDeliveryArea] = useState<"" | "inside_dhaka" | "outside_dhaka">("")
   const [zip, setZip] = useState("")
 
   useEffect(() => {
@@ -105,8 +104,7 @@ export default function CheckoutPage() {
   }, [])
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  const locationText = `${city} ${stateProvince}`.toLowerCase()
-  const shipping = city.trim() || stateProvince.trim() ? (locationText.includes("dhaka") ? 60 : 150) : 0
+  const shipping = deliveryArea === "inside_dhaka" ? 60 : deliveryArea === "outside_dhaka" ? 150 : 0
   const tax = Math.round(subtotal * 0.08)
   const total = subtotal + shipping + tax
 
@@ -123,7 +121,7 @@ export default function CheckoutPage() {
         window.location.href = "/signin"
         return
       }
-      if (!email || !firstName || !lastName || !phone || !address || !city || !stateProvince) {
+      if (!email || !firstName || !lastName || !phone || !address || !deliveryArea) {
         const message = "Please complete all required shipping fields."
         setCheckoutMessage(message)
         toast({
@@ -151,7 +149,7 @@ export default function CheckoutPage() {
         full_name: `${firstName} ${lastName}`.trim(),
         phone: phone.trim(),
         address,
-        city: `${city.trim()}, ${stateProvince.trim()}`,
+        city: deliveryArea === "inside_dhaka" ? "Inside Dhaka" : "Outside Dhaka",
         postal_code: zip.trim(),
         items: cartItems.map((item) => ({
           product_id: item.productId,
@@ -291,28 +289,22 @@ export default function CheckoutPage() {
                       className="mt-1.5 border-border/50 focus:border-foreground"
                     />
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="city" className="text-xs tracking-wide">
-                        District / City
+                      <Label htmlFor="deliveryArea" className="text-xs tracking-wide">
+                        Delivery Area
                       </Label>
-                      <Input
-                        id="city"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        className="mt-1.5 border-border/50 focus:border-foreground"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="stateProvince" className="text-xs tracking-wide">
-                        State / Province
-                      </Label>
-                      <Input
-                        id="stateProvince"
-                        value={stateProvince}
-                        onChange={(e) => setStateProvince(e.target.value)}
-                        className="mt-1.5 border-border/50 focus:border-foreground"
-                      />
+                      <select
+                        id="deliveryArea"
+                        value={deliveryArea}
+                        onChange={(e) => setDeliveryArea(e.target.value as "" | "inside_dhaka" | "outside_dhaka")}
+                        className="mt-1.5 h-10 w-full border border-border/50 bg-background px-3 text-sm focus:outline-none focus:border-foreground"
+                        required
+                      >
+                        <option value="">Select area</option>
+                        <option value="inside_dhaka">Inside Dhaka</option>
+                        <option value="outside_dhaka">Outside Dhaka</option>
+                      </select>
                     </div>
                     <div>
                       <Label htmlFor="zip" className="text-xs tracking-wide">
