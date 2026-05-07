@@ -9,6 +9,8 @@ import { Navigation } from "@/components/navigation"
 import { PremiumFooter } from "@/components/premium-footer"
 import { ArrowRight } from "lucide-react"
 import { API_BASE_URL } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import { toast } from "@/hooks/use-toast"
 
 interface VariantImage {
   image_url: string
@@ -57,6 +59,7 @@ const toProductCard = (product: ProductApi): ProductCard => {
 export default function ShopPage() {
   const [products, setProducts] = useState<ProductCard[]>([])
   const [loading, setLoading] = useState(true)
+  const [addingProductId, setAddingProductId] = useState<string | null>(null)
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -77,6 +80,52 @@ export default function ShopPage() {
 
     loadProducts()
   }, [])
+
+  const handleAddToCart = async (product: ProductCard) => {
+    if (addingProductId === product.id) return
+    const stored = localStorage.getItem("user")
+    if (!stored) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to add products to your cart.",
+      })
+      window.location.href = "/signin"
+      return
+    }
+    try {
+      const parsed = JSON.parse(stored)
+      if (!parsed?.id) {
+        window.location.href = "/signin"
+        return
+      }
+      setAddingProductId(product.id)
+      const response = await fetch(`${API_BASE_URL}/api/cart`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: parsed.id,
+          product_id: product.id,
+          quantity: 1,
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to add to cart")
+      }
+      toast({
+        title: "Added to cart",
+        description: `${product.name} added to your cart.`,
+      })
+      window.dispatchEvent(new Event("cart-updated"))
+    } catch (error) {
+      toast({
+        title: "Add to cart failed",
+        description: error instanceof Error ? error.message : "Failed to add to cart",
+      })
+    } finally {
+      setAddingProductId(null)
+    }
+  }
 
   return (
     <main className="min-h-screen bg-background">
@@ -162,6 +211,14 @@ export default function ShopPage() {
                       <p className="text-sm text-muted-foreground">Tk {product.price.toLocaleString()}</p>
                     </div>
                   </Link>
+                  <Button
+                    type="button"
+                    onClick={() => handleAddToCart(product)}
+                    disabled={addingProductId === product.id}
+                    className="mt-4 w-full rounded-none uppercase tracking-[0.15em] text-xs"
+                  >
+                    {addingProductId === product.id ? "Adding..." : "Add to cart"}
+                  </Button>
                 </motion.div>
               ))}
             </motion.div>
