@@ -31,6 +31,17 @@ export default function SignInPage() {
     setMode(params.get('mode') === 'signup' ? 'signup' : 'login')
   }, [])
 
+  const switchMode = (nextMode: 'login' | 'signup') => {
+    setMode(nextMode)
+    const url = new URL(window.location.href)
+    if (nextMode === 'signup') {
+      url.searchParams.set('mode', 'signup')
+    } else {
+      url.searchParams.set('mode', 'login')
+    }
+    window.history.replaceState({}, '', `${url.pathname}${url.search}`)
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -255,13 +266,13 @@ export default function SignInPage() {
                 </Button>
                 <p className="pt-3 text-center text-sm text-muted-foreground">
                   New here?{' '}
-                  <Link
-                    href="/signin?mode=signup"
-                    onClick={() => setMode('signup')}
+                  <button
+                    type="button"
+                    onClick={() => switchMode('signup')}
                     className="text-foreground underline underline-offset-4"
                   >
                     Create an account
-                  </Link>
+                  </button>
                 </p>
               </form>
             ) : (
@@ -364,13 +375,13 @@ export default function SignInPage() {
                 </p>
                 <p className="text-center text-sm text-muted-foreground">
                   Already a member?{' '}
-                  <Link
-                    href="/signin?mode=login"
-                    onClick={() => setMode('login')}
+                  <button
+                    type="button"
+                    onClick={() => switchMode('login')}
                     className="text-foreground underline underline-offset-4"
                   >
                     Sign in
-                  </Link>
+                  </button>
                 </p>
               </form>
             )}
