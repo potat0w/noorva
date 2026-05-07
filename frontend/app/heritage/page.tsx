@@ -9,76 +9,61 @@ import { ArrowRight } from "lucide-react"
 
 const timeline = [
   {
-    year: "1847",
+    year: "2018",
     title: "The Beginning",
     description:
-      "Giuseppe Maison established our first atelier in Florence, crafting bespoke leather goods for Italian nobility. His vision was simple: create pieces that transcend time.",
+      "We started as a small local shop with a passion for providing quality products and friendly customer service to our community.",
   },
   {
-    year: "1892",
-    title: "Royal Appointment",
+    year: "2021",
+    title: "Building Customer Trust",
     description:
-      "Recognized for exceptional craftsmanship, Maison received its first royal warrant, establishing a tradition of serving discerning clientele across Europe.",
-  },
-  {
-    year: "1935",
-    title: "The Signature Stitch",
-    description:
-      "Third-generation artisan Marco Maison perfected our distinctive hand-stitching technique, now recognized worldwide as the hallmark of authentic Maison pieces.",
-  },
-  {
-    year: "1978",
-    title: "Global Expansion",
-    description:
-      "While maintaining our Florence atelier as the heart of production, Maison opened boutiques in Paris, Milan, and New York, sharing Italian excellence with the world.",
+      "Over the years, our store became a trusted destination for customers looking for reliable products at affordable prices.",
   },
   {
     year: "2024",
-    title: "Contemporary Vision",
+    title: "Going Online",
     description:
-      "Today, the fifth generation continues our legacy, blending centuries of tradition with contemporary design to create pieces for the modern connoisseur.",
+      "To serve more customers beyond our local area, we launched our social media and online pages, making shopping easier and more accessible.",
+  },
+  {
+    year: "2025",
+    title: "Launching Our Website",
+    description:
+      "This year marks a new chapter with the launch of our official ecommerce website - offering a smoother, faster, and more convenient shopping experience.",
+  },
+  {
+    year: "Today",
+    title: "Growing Every Day",
+    description:
+      "We continue expanding our collection and improving our services while staying committed to the trust and support of our customers.",
   },
 ]
 
 const values = [
   {
-    title: "Artisanal Excellence",
+    title: "Quality First",
     description:
-      "Every piece is crafted by master artisans with decades of experience, ensuring unparalleled quality and attention to detail.",
+      "Every product is selected carefully to ensure quality, reliability, and customer satisfaction.",
     image: "/artisan-hands-crafting-leather-luxury-goods.jpg",
   },
   {
-    title: "Sustainable Luxury",
+    title: "Customer Satisfaction",
     description:
-      "We source only the finest materials from ethical suppliers, believing true luxury must be responsible to both people and planet.",
+      "We value every customer and aim to provide the best shopping experience possible.",
     image: "/premium-leather-material-sustainable-luxury.jpg",
   },
   {
-    title: "Timeless Design",
+    title: "Honest Pricing",
     description:
-      "Our designs eschew fleeting trends in favor of enduring elegance, creating pieces meant to be treasured for generations.",
+      "Good products should be accessible at fair and reasonable prices.",
     image: "/minimalist-luxury-handbag-timeless-design.jpg",
   },
-]
-
-const craftsmen = [
   {
-    name: "Lorenzo Benedetti",
-    role: "Master Leather Artisan",
-    years: "42 years",
-    image: "/elderly-italian-craftsman-portrait-luxury.jpg",
-  },
-  {
-    name: "Sofia Marchetti",
-    role: "Lead Designer",
-    years: "18 years",
-    image: "/elegant-italian-woman-designer-portrait.jpg",
-  },
-  {
-    name: "Alessandro Rossi",
-    role: "Quality Director",
-    years: "28 years",
-    image: "/distinguished-italian-man-portrait-luxury.jpg",
+    title: "Modern Shopping Experience",
+    description:
+      "From offline shopping to online convenience, we are constantly evolving to serve you better.",
+    image: "/shop-hero-luxury-fashion-collection.jpg",
   },
 ]
 
@@ -91,7 +76,7 @@ export default function HeritagePage() {
       <section className="relative h-[70vh] lg:h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/florence-italy-aerial-view-luxury-historic.jpg"
+            src="/heri.jpg"
             alt="Florence, Italy"
             fill
             priority
@@ -108,7 +93,7 @@ export default function HeritagePage() {
             transition={{ duration: 0.6 }}
             className="text-xs tracking-[0.4em] uppercase text-background/70 mb-6 block"
           >
-            Since 1847
+            Our Journey
           </motion.span>
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -116,7 +101,7 @@ export default function HeritagePage() {
             transition={{ duration: 0.8, delay: 0.1 }}
             className="font-serif text-5xl md:text-6xl lg:text-7xl text-background mb-6 leading-[1.1] text-balance"
           >
-            Our Heritage
+            From Local Store to Online Experience
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -124,7 +109,7 @@ export default function HeritagePage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-background/80 text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed"
           >
-            Five generations of Italian craftsmanship, dedicated to the pursuit of timeless elegance.
+            Built on trust, quality, and customer care - now available both offline and online.
           </motion.p>
         </div>
       </section>
@@ -139,9 +124,8 @@ export default function HeritagePage() {
             transition={{ duration: 0.8 }}
             className="text-lg lg:text-xl text-muted-foreground leading-relaxed"
           >
-            In the heart of Florence, where the Renaissance redefined beauty and craftsmanship, our story began. What
-            started as a modest workshop has evolved into a symbol of Italian excellence, yet our founding principles
-            remain unchanged: exceptional materials, masterful technique, and an unwavering commitment to perfection.
+            What began as a neighborhood store has grown into a complete shopping experience. We continue to blend
+            personal service with modern convenience so every customer can shop with confidence.
           </motion.p>
         </div>
       </section>
@@ -156,7 +140,7 @@ export default function HeritagePage() {
             className="text-center mb-16 lg:mb-24"
           >
             <span className="text-xs tracking-[0.4em] uppercase text-muted-foreground mb-4 block">Our Journey</span>
-            <h2 className="font-serif text-3xl lg:text-5xl">A Legacy of Excellence</h2>
+            <h2 className="font-serif text-3xl lg:text-5xl">From Local Store to Online Experience</h2>
           </motion.div>
 
           <div className="relative">
@@ -206,10 +190,10 @@ export default function HeritagePage() {
             className="text-center mb-16 lg:mb-24"
           >
             <span className="text-xs tracking-[0.4em] uppercase text-muted-foreground mb-4 block">Our Philosophy</span>
-            <h2 className="font-serif text-3xl lg:text-5xl">Guiding Principles</h2>
+            <h2 className="font-serif text-3xl lg:text-5xl">What We Believe In</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             {values.map((value, index) => (
               <motion.div
                 key={value.title}
@@ -246,33 +230,35 @@ export default function HeritagePage() {
             viewport={{ once: true }}
             className="text-center mb-16 lg:mb-24"
           >
-            <span className="text-xs tracking-[0.4em] uppercase text-background/60 mb-4 block">The Artisans</span>
-            <h2 className="font-serif text-3xl lg:text-5xl">Masters of Craft</h2>
+            <span className="text-xs tracking-[0.4em] uppercase text-background/60 mb-4 block">Built With Trust</span>
+            <h2 className="font-serif text-3xl lg:text-5xl">Built With Trust</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
-            {craftsmen.map((person, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+            {[
+              {
+                title: "Local Store Roots",
+                description: "Started offline with real customer relationships.",
+              },
+              {
+                title: "Growing Online",
+                description: "Expanding through social media and ecommerce.",
+              },
+              {
+                title: "Customer Focused",
+                description: "Every improvement is made with customers in mind.",
+              },
+            ].map((item, index) => (
               <motion.div
-                key={person.name}
+                key={item.title}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="text-center"
+                className="border border-background/20 p-8 text-center"
               >
-                <div className="aspect-[4/5] overflow-hidden mb-6 grayscale hover:grayscale-0 transition-all duration-700 relative">
-                  <Image
-                    src={person.image || "/placeholder.svg"}
-                    alt={person.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    loading="lazy"
-                    className="object-cover"
-                  />
-                </div>
-                <h3 className="font-serif text-xl lg:text-2xl mb-1">{person.name}</h3>
-                <p className="text-background/60 text-sm mb-1">{person.role}</p>
-                <p className="text-xs tracking-[0.2em] uppercase text-background/40">{person.years}</p>
+                <h3 className="font-serif text-xl lg:text-2xl mb-3">{item.title}</h3>
+                <p className="text-background/70 text-sm lg:text-base leading-relaxed">{item.description}</p>
               </motion.div>
             ))}
           </div>
@@ -289,12 +275,12 @@ export default function HeritagePage() {
             transition={{ duration: 0.8 }}
           >
             <p className="font-serif text-2xl lg:text-4xl leading-relaxed mb-8 text-balance">
-              "True luxury is not about ostentation. It is about the quiet confidence that comes from knowing every
-              detail has been considered, every stitch placed with intention."
+              "From a small local shop to an online store, our journey has always been about trust, quality, and
+              customer satisfaction."
             </p>
             <cite className="not-italic">
               <span className="block text-sm tracking-[0.2em] uppercase text-muted-foreground">
-                — Isabella Maison, Creative Director
+                - Team Noorva
               </span>
             </cite>
           </motion.blockquote>

@@ -108,7 +108,7 @@ export function Navigation() {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/shop", label: "Shop" },
-    { href: "/heritage", label: "Heritage" },
+    { href: "/heritage", label: "Our Journey" },
   ]
 
   const useLightHeaderStyle = pathname === "/" && !isScrolled
