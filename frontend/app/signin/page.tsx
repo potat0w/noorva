@@ -255,7 +255,11 @@ export default function SignInPage() {
                 </Button>
                 <p className="pt-3 text-center text-sm text-muted-foreground">
                   New here?{' '}
-                  <Link href="/signin?mode=signup" className="text-foreground underline underline-offset-4">
+                  <Link
+                    href="/signin?mode=signup"
+                    onClick={() => setMode('signup')}
+                    className="text-foreground underline underline-offset-4"
+                  >
                     Create an account
                   </Link>
                 </p>
@@ -360,7 +364,11 @@ export default function SignInPage() {
                 </p>
                 <p className="text-center text-sm text-muted-foreground">
                   Already a member?{' '}
-                  <Link href="/signin?mode=login" className="text-foreground underline underline-offset-4">
+                  <Link
+                    href="/signin?mode=login"
+                    onClick={() => setMode('login')}
+                    className="text-foreground underline underline-offset-4"
+                  >
                     Sign in
                   </Link>
                 </p>
