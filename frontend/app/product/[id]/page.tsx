@@ -1,0 +1,272 @@
+"use client"
+
+import { use } from "react"
+import { useEffect } from "react"
+import { useState } from "react"
+import { notFound } from "next/navigation"
+import Link from "next/link"
+import { motion } from "framer-motion"
+import { Navigation } from "@/components/navigation"
+import { PremiumFooter } from "@/components/premium-footer"
+import { ProductGallery } from "@/components/product-gallery"
+import { SizeSelector } from "@/components/size-selector"
+import { ColorSelector } from "@/components/color-selector"
+import { ProductDetailsAccordion } from "@/components/product-details-accordion"
+import { ChevronRight } from "lucide-react"
+
+interface VariantImage {
+  image_url: string
+  position: number
+}
+
+interface Variant {
+  id: string
+  color: string | null
+  stock: number
+  price: number
+  variant_images?: VariantImage[]
+}
+
+interface ProductApi {
+  id: string
+  title: string
+  description: string | null
+  price: number
+  variants?: Variant[]
+}
+
+const PLACEHOLDER_IMAGE = "/placeholder.svg"
+const COLOR_HEX_MAP: Record<string, string> = {
+  black: "#111827",
+  navy: "#1E3A8A",
+  red: "#DC2626",
+  "lime green": "#84CC16",
+  avocado: "#A3BE4C",
+  peach: "#F9A8D4",
+  watermelon: "#FB7185",
+  orange: "#F59E0B",
+  "royal mint": "#5EEAD4",
+  "midnight purple": "#6366F1",
+  "barbie pink": "#EC4899",
+  blue: "#3B82F6",
+  yellow: "#FACC15",
+  green: "#22C55E",
+  "bottle green": "#14532D",
+  maroon: "#7F1D1D",
+  coffee: "#6F4E37",
+  navyblue: "#1E3A8A",
+  "navy blue": "#1E3A8A",
+  pink: "#EC4899",
+}
+
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const [product, setProduct] = useState<ProductApi | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const [cartMessage, setCartMessage] = useState("")
+  const [isAddingToBag, setIsAddingToBag] = useState(false)
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        const response = await fetch(`/api/products/${id}`)
+        if (response.status === 404) {
+          setProduct(null)
+          setLoading(false)
+          return
+        }
+        const data = (await response.json()) as ProductApi
+        if (!response.ok) {
+          setProduct(null)
+          setLoading(false)
+          return
+        }
+        setProduct(data)
+        const firstAvailableColor =
+          (data.variants || []).find((variant) => (variant.stock || 0) > 0 && Boolean(variant.color))?.color ||
+          (data.variants || []).find((variant) => Boolean(variant.color))?.color ||
+          null
+        setSelectedColor(firstAvailableColor)
+      } catch {
+        setProduct(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProduct()
+  }, [id])
+
+  if (!loading && !product) {
+    notFound()
+  }
+
+  if (loading || !product) {
+    return (
+      <main className="min-h-screen bg-background">
+        <Navigation />
+        <div className="max-w-7xl mx-auto px-6 pt-32 pb-16 text-center text-muted-foreground">Loading product...</div>
+        <PremiumFooter />
+      </main>
+    )
+  }
+
+  const selectedVariant =
+    (product.variants || []).find((variant) => (variant.color || "").toLowerCase() === (selectedColor || "").toLowerCase()) ||
+    null
+  const variantsForGallery = selectedVariant ? [selectedVariant] : product.variants || []
+  const variantImages = variantsForGallery
+    .flatMap((variant) => (variant.variant_images || []).sort((a, b) => a.position - b.position))
+    .map((image) => image.image_url)
+    .filter(Boolean)
+
+  const galleryImages = variantImages.length > 0 ? variantImages : [PLACEHOLDER_IMAGE]
+  const displayPrice = Number(selectedVariant?.price ?? product.price) || 0
+  const isSelectedOutOfStock = Boolean(selectedVariant) && (selectedVariant?.stock || 0) <= 0
+  const colorList = (product.variants || [])
+    .filter((variant) => Boolean(variant.color))
+    .map((variant) => ({
+      name: variant.color || "",
+      hex: COLOR_HEX_MAP[(variant.color || "").toLowerCase()] || "#9CA3AF",
+      available: (variant.stock || 0) > 0,
+    }))
+  const hasColors = colorList.length > 0
+
+  const accordionItems = [
+    {
+      title: "Details",
+      content: [product.description || "No additional details available."],
+    },
+    {
+      title: "Materials",
+      content: ["Waterproof material"],
+    },
+    {
+      title: "Care",
+      content: ["Wipe clean with a dry cloth"],
+    },
+    {
+      title: "Shipping & Returns",
+      content: [
+        "Complimentary shipping on all orders",
+        "Express delivery available",
+        "Free returns within 30 days",
+        "Items must be unworn with tags attached",
+      ],
+    },
+  ]
+
+  const handleAddToBag = async () => {
+    if (isSelectedOutOfStock || isAddingToBag) return
+    const stored = localStorage.getItem("user")
+    if (!stored) {
+      window.location.href = "/signin"
+      return
+    }
+    try {
+      const parsed = JSON.parse(stored)
+      if (!parsed?.id) {
+        window.location.href = "/signin"
+        return
+      }
+      setIsAddingToBag(true)
+      setCartMessage("")
+      const response = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: parsed.id,
+          product_id: product.id,
+          quantity: 1,
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to add item to bag")
+      }
+      setCartMessage("Added to bag.")
+      window.dispatchEvent(new Event("cart-updated"))
+    } catch (error) {
+      setCartMessage(error instanceof Error ? error.message : "Failed to add item to bag")
+    } finally {
+      setIsAddingToBag(false)
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-background">
+      <Navigation />
+
+      {/* Breadcrumb */}
+      <div className="max-w-7xl mx-auto px-6 pt-24 pb-8">
+        <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link href="/" className="hover:text-foreground transition-colors">
+            Home
+          </Link>
+          <ChevronRight className="w-3 h-3" />
+          <Link href="/shop" className="hover:text-foreground transition-colors">
+            Shop
+          </Link>
+          <ChevronRight className="w-3 h-3" />
+          <span className="text-foreground">{product.title}</span>
+        </nav>
+      </div>
+
+      {/* Product Section */}
+      <section className="max-w-7xl mx-auto px-6 pb-16 md:pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+          {/* Gallery */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <ProductGallery images={galleryImages} productName={product.title} />
+          </motion.div>
+
+          {/* Product Info */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            className="lg:sticky lg:top-32 lg:self-start space-y-8"
+          >
+            <div className="space-y-4">
+              <h1 className="font-serif text-3xl md:text-4xl">{product.title}</h1>
+              <p className="text-xl">Tk {displayPrice.toLocaleString()}</p>
+            </div>
+
+            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+
+            {hasColors && <ColorSelector colors={colorList} onSelect={setSelectedColor} />}
+
+            <SizeSelector sizes={[{ size: "Standard", available: true }]} />
+
+            <motion.button
+              disabled={isSelectedOutOfStock}
+              onClick={handleAddToBag}
+              className={`w-full py-4 text-sm tracking-widest uppercase transition-colors ${
+                isSelectedOutOfStock
+                  ? "bg-muted text-muted-foreground cursor-not-allowed"
+                  : "bg-foreground text-background hover:bg-foreground/90"
+              }`}
+              whileTap={{ scale: 0.98 }}
+            >
+              {isSelectedOutOfStock ? "Stock Out" : isAddingToBag ? "Adding..." : "Add to Bag"}
+            </motion.button>
+
+            <p className="text-xs text-muted-foreground text-center tracking-widest">
+              {isSelectedOutOfStock ? "This selected color is stock out." : "Variant stock is available by color."}
+            </p>
+            {cartMessage ? <p className="text-xs text-center tracking-widest">{cartMessage}</p> : null}
+
+            <ProductDetailsAccordion items={accordionItems} />
+          </motion.div>
+        </div>
+      </section>
+
+      <PremiumFooter />
+    </main>
+  )
+}
