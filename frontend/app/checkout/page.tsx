@@ -106,6 +106,7 @@ export default function CheckoutPage() {
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
   const shipping = deliveryArea === "inside_dhaka" ? 60 : deliveryArea === "outside_dhaka" ? 150 : 0
   const total = subtotal + shipping
+  const normalizedPhone = phone.startsWith("880") ? phone.slice(3) : phone.startsWith("0") ? phone.slice(1) : phone
 
   const handlePlaceOrder = async () => {
     if (placingOrder || cartItems.length === 0) return
@@ -130,7 +131,7 @@ export default function CheckoutPage() {
         return
       }
       const bdPhoneRegex = /^1\d{9}$/
-      if (!bdPhoneRegex.test(phone.trim())) {
+      if (!bdPhoneRegex.test(normalizedPhone.trim())) {
         const message = "Enter a valid Bangladesh phone number."
         setCheckoutMessage(message)
         toast({
@@ -146,7 +147,7 @@ export default function CheckoutPage() {
         total_price: total,
         status: "pending",
         full_name: `${firstName} ${lastName}`.trim(),
-        phone: `+880${phone.trim()}`,
+        phone: `+880${normalizedPhone.trim()}`,
         address,
         city: deliveryArea === "inside_dhaka" ? "Inside Dhaka" : "Outside Dhaka",
         postal_code: zip.trim(),
@@ -246,9 +247,9 @@ export default function CheckoutPage() {
                         id="phone"
                         type="tel"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))}
                         className="rounded-l-none border-border/50 focus:border-foreground"
-                        placeholder="1XXXXXXXXX"
+                        placeholder="01XXXXXXXXX"
                       />
                     </div>
                   </div>
