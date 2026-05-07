@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { API_BASE_URL } from '@/lib/api'
 
-export default function SignInPage() {
+function SignInPageContent() {
   const searchParams = useSearchParams()
   const [mode, setMode] = useState<'login' | 'signup'>(searchParams.get('mode') === 'signup' ? 'signup' : 'login')
   const [isLoading, setIsLoading] = useState(false)
@@ -347,5 +347,13 @@ export default function SignInPage() {
         </footer>
       </section>
     </main>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-background" />}>
+      <SignInPageContent />
+    </Suspense>
   )
 }
