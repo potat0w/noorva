@@ -25,6 +25,7 @@ interface VariantImage {
 
 interface Variant {
   id: string
+  name: string
   color: string | null
   stock: number
   price: number
@@ -81,6 +82,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [product, setProduct] = useState<ProductApi | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [cartMessage, setCartMessage] = useState("")
   const [isAddingToBag, setIsAddingToBag] = useState(false)
   const [reviews, setReviews] = useState<ReviewApi[]>([])
@@ -90,6 +92,33 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [submittingReview, setSubmittingReview] = useState(false)
   const [deletingReview, setDeletingReview] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+
+  const getVariantSize = (variant: Variant) => {
+    const value = (variant.name || "").trim()
+    if (!value) return "Standard"
+    const patterns = [
+      "XXL/3XL",
+      "3XL",
+      "XXXL",
+      "XXL",
+      "XL",
+      "L",
+      "M",
+      "S",
+      "FREE SIZE",
+      "STANDARD",
+    ]
+    const upper = value.toUpperCase()
+    for (const pattern of patterns) {
+      if (upper.endsWith(pattern)) {
+        return pattern === "FREE SIZE" ? "Free Size" : pattern === "STANDARD" ? "Standard" : pattern
+      }
+    }
+    const parts = value.split(/\s+/)
+    return parts[parts.length - 1] || "Standard"
+  }
+
+  const normalize = (value: string | null | undefined) => (value || "").trim().toLowerCase()
 
   const loadReviews = async () => {
     setReviewsLoading(true)
@@ -129,6 +158,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           (data.variants || []).find((variant) => Boolean(variant.color))?.color ||
           null
         setSelectedColor(firstAvailableColor)
+        const sizeSource = firstAvailableColor
+          ? (data.variants || []).filter((variant) => normalize(variant.color) === normalize(firstAvailableColor))
+          : data.variants || []
+        const firstAvailableVariant = sizeSource.find((variant) => (variant.stock || 0) > 0) || sizeSource[0] || null
+        setSelectedSize(firstAvailableVariant ? getVariantSize(firstAvailableVariant) : null)
       } catch {
         setProduct(null)
       } finally {
@@ -172,6 +206,26 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     setReviewComment(existingReview.comment || "")
   }, [existingReview])
 
+  useEffect(() => {
+    if (!product) return
+    const variants = product.variants || []
+    const scoped =
+      selectedColor && variants.some((variant) => normalize(variant.color) === normalize(selectedColor))
+        ? variants.filter((variant) => normalize(variant.color) === normalize(selectedColor))
+        : variants
+    const uniqueSizes = Array.from(new Set(scoped.map((variant) => getVariantSize(variant))))
+    if (!uniqueSizes.length) {
+      setSelectedSize(null)
+      return
+    }
+    if (selectedSize && uniqueSizes.includes(selectedSize)) {
+      return
+    }
+    const firstAvailableVariant = scoped.find((variant) => (variant.stock || 0) > 0)
+    const fallbackSize = firstAvailableVariant ? getVariantSize(firstAvailableVariant) : uniqueSizes[0]
+    setSelectedSize(fallbackSize)
+  }, [product, selectedColor, selectedSize])
+
   if (!loading && !product) {
     notFound()
   }
@@ -186,8 +240,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     )
   }
 
+  const allVariants = product.variants || []
+  const scopedVariants =
+    selectedColor && allVariants.some((variant) => normalize(variant.color) === normalize(selectedColor))
+      ? allVariants.filter((variant) => normalize(variant.color) === normalize(selectedColor))
+      : allVariants
   const selectedVariant =
-    (product.variants || []).find((variant) => (variant.color || "").toLowerCase() === (selectedColor || "").toLowerCase()) ||
+    scopedVariants.find((variant) => getVariantSize(variant) === selectedSize) ||
+    scopedVariants.find((variant) => (variant.stock || 0) > 0) ||
+    scopedVariants[0] ||
     null
   const variantsForGallery = selectedVariant ? [selectedVariant] : product.variants || []
   const variantImages = variantsForGallery
@@ -206,6 +267,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       available: (variant.stock || 0) > 0,
     }))
   const hasColors = colorList.length > 0
+  const sizeList = Array.from(new Set(scopedVariants.map((variant) => getVariantSize(variant)))).map((size) => ({
+    size,
+    available: scopedVariants.some((variant) => getVariantSize(variant) === size && (variant.stock || 0) > 0),
+  }))
   const accordionItems = [
     {
       title: "Details",
@@ -413,7 +478,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
             {hasColors && <ColorSelector colors={colorList} onSelect={setSelectedColor} />}
 
-            <SizeSelector sizes={[{ size: "Standard", available: true }]} />
+            <SizeSelector
+              key={`${id}-${selectedColor || "all"}`}
+              sizes={sizeList.length ? sizeList : [{ size: "Standard", available: true }]}
+              onSelect={setSelectedSize}
+            />
 
             <motion.button
               disabled={isSelectedOutOfStock}
@@ -429,7 +498,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             </motion.button>
 
             <p className="text-xs text-muted-foreground text-center tracking-widest">
-              {isSelectedOutOfStock ? "This selected color is stock out." : "Variant stock is available by color."}
+              {isSelectedOutOfStock
+                ? "This selected size is stock out."
+                : "Price and stock update based on selected size."}
             </p>
             {cartMessage ? <p className="text-xs text-center tracking-widest">{cartMessage}</p> : null}
 

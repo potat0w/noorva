@@ -115,18 +115,40 @@ export default function HeritagePage() {
       </section>
 
       {/* Introduction */}
-      <section className="py-20 lg:py-32 px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.p
+      <section className="py-12 lg:py-20 px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-lg lg:text-xl text-muted-foreground leading-relaxed"
+            className="border border-border bg-muted/40 p-8 lg:p-12"
           >
-            What began as a neighborhood store has grown into a complete shopping experience. We continue to blend
-            personal service with modern convenience so every customer can shop with confidence.
-          </motion.p>
+            <p className="text-lg lg:text-2xl text-center text-muted-foreground leading-relaxed">
+              What began as a neighborhood store has grown into a complete shopping experience. We continue to blend
+              personal service with modern convenience so every customer can shop with confidence.
+            </p>
+          </motion.div>
+
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { value: "2018", label: "Started Local" },
+              { value: "2025", label: "Launched Website" },
+              { value: "Today", label: "Growing Daily" },
+            ].map((item, index) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="border border-border bg-background p-6 text-center"
+              >
+                <p className="font-serif text-2xl">{item.value}</p>
+                <p className="mt-1 text-xs tracking-[0.2em] uppercase text-muted-foreground">{item.label}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
