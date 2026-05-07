@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { ProductCard } from "./product-card"
+import { API_BASE_URL } from "@/lib/api"
 
 interface VariantImage {
   image_url: string
@@ -54,7 +55,7 @@ export function CollectionGrid() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const response = await fetch("/api/products")
+        const response = await fetch(`${API_BASE_URL}/api/products`)
         const data = (await response.json()) as ProductApi[]
         if (!response.ok) {
           setProducts([])

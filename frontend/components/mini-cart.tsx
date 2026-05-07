@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X, Minus, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { API_BASE_URL } from "@/lib/api"
 
 interface MiniCartProps {
   isOpen: boolean
@@ -65,7 +66,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
         }
         setLoading(true)
         setError("")
-        const response = await fetch(`/api/cart/user/${parsed.id}`)
+        const response = await fetch(`${API_BASE_URL}/api/cart/user/${parsed.id}`)
         const data = (await response.json()) as CartApiItem[]
         if (!response.ok) {
           throw new Error("Failed to load cart")
@@ -107,7 +108,7 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
         setCartItems([])
         return
       }
-      const response = await fetch(`/api/cart/user/${parsed.id}`)
+      const response = await fetch(`${API_BASE_URL}/api/cart/user/${parsed.id}`)
       const data = (await response.json()) as CartApiItem[]
       if (!response.ok) {
         throw new Error("Failed to load cart")
@@ -137,13 +138,13 @@ export function MiniCart({ isOpen, onClose }: MiniCartProps) {
     try {
       setError("")
       if (nextQuantity <= 0) {
-        const response = await fetch(`/api/cart/${cartItemId}`, { method: "DELETE" })
+        const response = await fetch(`${API_BASE_URL}/api/cart/${cartItemId}`, { method: "DELETE" })
         if (!response.ok) {
           const data = await response.json().catch(() => ({}))
           throw new Error((data as { error?: string }).error || "Failed to remove item")
         }
       } else {
-        const response = await fetch(`/api/cart/${cartItemId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/cart/${cartItemId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ quantity: nextQuantity }),

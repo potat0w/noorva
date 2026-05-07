@@ -8,6 +8,7 @@ import { ChevronLeft, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { API_BASE_URL } from "@/lib/api"
 
 interface VariantImage {
   image_url: string
@@ -70,7 +71,7 @@ export default function CheckoutPage() {
           setLoadingCart(false)
           return
         }
-        const response = await fetch(`/api/cart/user/${parsed.id}`)
+        const response = await fetch(`${API_BASE_URL}/api/cart/user/${parsed.id}`)
         const data = (await response.json()) as CartApiItem[]
         if (!response.ok) {
           setCartItems([])
@@ -137,7 +138,7 @@ export default function CheckoutPage() {
           price: item.price,
         })),
       }
-      const response = await fetch("/api/orders", {
+      const response = await fetch(`${API_BASE_URL}/api/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

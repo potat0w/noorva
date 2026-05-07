@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Search, ShoppingBag, Menu, X, User } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MiniCart } from "./mini-cart"
+import { API_BASE_URL } from "@/lib/api"
 
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -59,7 +60,7 @@ export function Navigation() {
           setCartCount(0)
           return
         }
-        const response = await fetch(`/api/cart/user/${parsed.id}`)
+        const response = await fetch(`${API_BASE_URL}/api/cart/user/${parsed.id}`)
         const data = await response.json()
         if (!response.ok || !Array.isArray(data)) {
           setCartCount(0)

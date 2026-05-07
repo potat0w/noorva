@@ -8,6 +8,7 @@ import Image from "next/image"
 import { Navigation } from "@/components/navigation"
 import { PremiumFooter } from "@/components/premium-footer"
 import { ArrowRight } from "lucide-react"
+import { API_BASE_URL } from "@/lib/api"
 
 interface VariantImage {
   image_url: string
@@ -60,7 +61,7 @@ export default function ShopPage() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const response = await fetch("/api/products")
+        const response = await fetch(`${API_BASE_URL}/api/products`)
         const data = (await response.json()) as ProductApi[]
         if (!response.ok) {
           setProducts([])

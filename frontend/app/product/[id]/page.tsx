@@ -13,6 +13,7 @@ import { SizeSelector } from "@/components/size-selector"
 import { ColorSelector } from "@/components/color-selector"
 import { ProductDetailsAccordion } from "@/components/product-details-accordion"
 import { ChevronRight } from "lucide-react"
+import { API_BASE_URL } from "@/lib/api"
 
 interface VariantImage {
   image_url: string
@@ -70,7 +71,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   useEffect(() => {
     const loadProduct = async () => {
       try {
-        const response = await fetch(`/api/products/${id}`)
+        const response = await fetch(`${API_BASE_URL}/api/products/${id}`)
         if (response.status === 404) {
           setProduct(null)
           setLoading(false)
@@ -172,7 +173,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       }
       setIsAddingToBag(true)
       setCartMessage("")
-      const response = await fetch("/api/cart", {
+      const response = await fetch(`${API_BASE_URL}/api/cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
