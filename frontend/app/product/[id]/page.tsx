@@ -333,6 +333,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         description: `${product.title} added to your cart.`,
       })
       window.dispatchEvent(new Event("cart-updated"))
+      window.dispatchEvent(new Event("cart-open"))
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to add item to bag"
       setCartMessage(message)

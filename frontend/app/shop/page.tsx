@@ -140,6 +140,7 @@ export default function ShopPage() {
         description: `${product.name} added to your cart.`,
       })
       window.dispatchEvent(new Event("cart-updated"))
+      window.dispatchEvent(new Event("cart-open"))
     } catch (error) {
       toast({
         title: "Add to cart failed",

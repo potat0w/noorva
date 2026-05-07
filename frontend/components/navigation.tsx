@@ -74,13 +74,16 @@ export function Navigation() {
     }
 
     loadCartCount()
+    const openCart = () => setIsCartOpen(true)
     window.addEventListener("focus", loadCartCount)
     window.addEventListener("storage", loadCartCount)
     window.addEventListener("cart-updated", loadCartCount as EventListener)
+    window.addEventListener("cart-open", openCart as EventListener)
     return () => {
       window.removeEventListener("focus", loadCartCount)
       window.removeEventListener("storage", loadCartCount)
       window.removeEventListener("cart-updated", loadCartCount as EventListener)
+      window.removeEventListener("cart-open", openCart as EventListener)
     }
   }, [])
 
