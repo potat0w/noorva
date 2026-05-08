@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { API_BASE_URL } from "@/lib/api"
 import { toast } from "@/hooks/use-toast"
-import { z } from "zod"
+import * as yup from "yup"
 
 interface VariantImage {
   image_url: string
@@ -47,20 +47,24 @@ interface CartItem {
 type DeliveryArea = "" | "inside_dhaka" | "outside_dhaka"
 type CheckoutField = "email" | "phone" | "firstName" | "lastName" | "address" | "deliveryArea" | "zip"
 
-const checkoutSchema = z.object({
-  email: z.string().trim().email("Enter a valid email address."),
-  phone: z.string().trim().regex(/^1\d{9}$/, "Enter a valid Bangladesh phone number."),
-  firstName: z.string().trim().min(2, "First name must be at least 2 characters."),
-  lastName: z.string().trim().min(2, "Last name must be at least 2 characters."),
-  address: z.string().trim().min(5, "Address must be at least 5 characters."),
-  deliveryArea: z.enum(["inside_dhaka", "outside_dhaka"], {
-    message: "Select a delivery area.",
-  }),
-  zip: z
+const checkoutSchema = yup.object({
+  email: yup.string().trim().email("Enter a valid email address.").required("Email is required."),
+  phone: yup
     .string()
     .trim()
-    .optional()
-    .refine((value) => !value || /^[A-Za-z0-9 -]{3,10}$/.test(value), "Enter a valid postal code."),
+    .matches(/^1\d{9}$/, "Enter a valid Bangladesh phone number.")
+    .required("Phone number is required."),
+  firstName: yup.string().trim().min(2, "First name must be at least 2 characters.").required("First name is required."),
+  lastName: yup.string().trim().min(2, "Last name must be at least 2 characters.").required("Last name is required."),
+  address: yup.string().trim().min(5, "Address must be at least 5 characters.").required("Address is required."),
+  deliveryArea: yup
+    .mixed<"inside_dhaka" | "outside_dhaka">()
+    .oneOf(["inside_dhaka", "outside_dhaka"], "Select a delivery area.")
+    .required("Select a delivery area."),
+  zip: yup
+    .string()
+    .trim()
+    .test("zip-format", "Enter a valid postal code.", (value) => !value || /^[A-Za-z0-9 -]{3,10}$/.test(value)),
 })
 
 export default function CheckoutPage() {
@@ -76,6 +80,7 @@ export default function CheckoutPage() {
   const [deliveryArea, setDeliveryArea] = useState<DeliveryArea>("")
   const [zip, setZip] = useState("")
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<CheckoutField, string>>>({})
+  const [touchedFields, setTouchedFields] = useState<Partial<Record<CheckoutField, boolean>>>({})
 
   useEffect(() => {
     const loadCart = async () => {
@@ -128,6 +133,15 @@ export default function CheckoutPage() {
   const shipping = deliveryArea === "inside_dhaka" ? 60 : deliveryArea === "outside_dhaka" ? 150 : 0
   const total = subtotal + shipping
   const normalizedPhone = phone.startsWith("880") ? phone.slice(3) : phone.startsWith("0") ? phone.slice(1) : phone
+  const getValidationValues = () => ({
+    email: email.trim(),
+    phone: normalizedPhone.trim(),
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
+    address: address.trim(),
+    deliveryArea,
+    zip: zip.trim(),
+  })
   const clearFieldError = (field: CheckoutField) => {
     setFieldErrors((prev) => {
       if (!prev[field]) return prev
@@ -135,6 +149,28 @@ export default function CheckoutPage() {
       delete next[field]
       return next
     })
+  }
+  const validateField = async (field: CheckoutField) => {
+    try {
+      await checkoutSchema.validateAt(field, getValidationValues())
+      clearFieldError(field)
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        setFieldErrors((prev) => ({ ...prev, [field]: error.message }))
+      }
+    }
+  }
+  const handleFieldBlur = (field: CheckoutField) => {
+    setTouchedFields((prev) => ({ ...prev, [field]: true }))
+    void validateField(field)
+  }
+  const handleFieldChange = (field: CheckoutField, value: string, setter: (next: string) => void) => {
+    setter(value)
+    if (touchedFields[field]) {
+      void validateField(field)
+      return
+    }
+    clearFieldError(field)
   }
 
   const handlePlaceOrder = async () => {
@@ -150,21 +186,16 @@ export default function CheckoutPage() {
         window.location.href = "/signin"
         return
       }
-      const validationResult = checkoutSchema.safeParse({
-        email,
-        phone: normalizedPhone.trim(),
-        firstName,
-        lastName,
-        address,
-        deliveryArea,
-        zip: zip.trim(),
-      })
-      if (!validationResult.success) {
+      try {
+        await checkoutSchema.validate(getValidationValues(), { abortEarly: false })
+      } catch (error) {
         const nextErrors: Partial<Record<CheckoutField, string>> = {}
-        for (const issue of validationResult.error.issues) {
-          const key = issue.path[0] as CheckoutField | undefined
-          if (!key || nextErrors[key]) continue
-          nextErrors[key] = issue.message
+        if (error instanceof yup.ValidationError) {
+          for (const issue of error.inner) {
+            const key = issue.path as CheckoutField | undefined
+            if (!key || nextErrors[key]) continue
+            nextErrors[key] = issue.message
+          }
         }
         setFieldErrors(nextErrors)
         const message = "Please fix the highlighted fields."
@@ -266,9 +297,9 @@ export default function CheckoutPage() {
                       id="email"
                       type="email"
                       value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value)
-                        clearFieldError("email")
+                      onChange={(e) => handleFieldChange("email", e.target.value, setEmail)}
+                      onBlur={() => {
+                        handleFieldBlur("email")
                       }}
                       className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.email ? "border-destructive" : ""}`}
                       placeholder="your@email.com"
@@ -287,9 +318,9 @@ export default function CheckoutPage() {
                         id="phone"
                         type="tel"
                         value={phone}
-                        onChange={(e) => {
-                          setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))
-                          clearFieldError("phone")
+                        onChange={(e) => handleFieldChange("phone", e.target.value.replace(/\D/g, "").slice(0, 13), setPhone)}
+                        onBlur={() => {
+                          handleFieldBlur("phone")
                         }}
                         className={`h-10 rounded-l-none border-border/50 focus:border-foreground ${fieldErrors.phone ? "border-destructive" : ""}`}
                         placeholder="01XXXXXXXXX"
@@ -311,9 +342,9 @@ export default function CheckoutPage() {
                       <Input
                         id="firstName"
                         value={firstName}
-                        onChange={(e) => {
-                          setFirstName(e.target.value)
-                          clearFieldError("firstName")
+                        onChange={(e) => handleFieldChange("firstName", e.target.value, setFirstName)}
+                        onBlur={() => {
+                          handleFieldBlur("firstName")
                         }}
                         className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.firstName ? "border-destructive" : ""}`}
                       />
@@ -326,9 +357,9 @@ export default function CheckoutPage() {
                       <Input
                         id="lastName"
                         value={lastName}
-                        onChange={(e) => {
-                          setLastName(e.target.value)
-                          clearFieldError("lastName")
+                        onChange={(e) => handleFieldChange("lastName", e.target.value, setLastName)}
+                        onBlur={() => {
+                          handleFieldBlur("lastName")
                         }}
                         className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.lastName ? "border-destructive" : ""}`}
                       />
@@ -342,9 +373,9 @@ export default function CheckoutPage() {
                     <Input
                       id="address"
                       value={address}
-                      onChange={(e) => {
-                        setAddress(e.target.value)
-                        clearFieldError("address")
+                      onChange={(e) => handleFieldChange("address", e.target.value, setAddress)}
+                      onBlur={() => {
+                        handleFieldBlur("address")
                       }}
                       className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.address ? "border-destructive" : ""}`}
                     />
@@ -359,8 +390,16 @@ export default function CheckoutPage() {
                         id="deliveryArea"
                         value={deliveryArea}
                         onChange={(e) => {
-                          setDeliveryArea(e.target.value as DeliveryArea)
+                          const nextValue = e.target.value as DeliveryArea
+                          setDeliveryArea(nextValue)
+                          if (touchedFields.deliveryArea) {
+                            void validateField("deliveryArea")
+                            return
+                          }
                           clearFieldError("deliveryArea")
+                        }}
+                        onBlur={() => {
+                          handleFieldBlur("deliveryArea")
                         }}
                         className={`mt-1.5 h-10 w-full border bg-background px-3 text-sm focus:outline-none focus:border-foreground ${
                           fieldErrors.deliveryArea ? "border-destructive" : "border-border/50"
@@ -382,9 +421,9 @@ export default function CheckoutPage() {
                       <Input
                         id="zip"
                         value={zip}
-                        onChange={(e) => {
-                          setZip(e.target.value)
-                          clearFieldError("zip")
+                        onChange={(e) => handleFieldChange("zip", e.target.value, setZip)}
+                        onBlur={() => {
+                          handleFieldBlur("zip")
                         }}
                         className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.zip ? "border-destructive" : ""}`}
                       />
