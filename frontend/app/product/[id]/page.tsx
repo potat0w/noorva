@@ -606,7 +606,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               onSelect={setSelectedSize}
             />
 
-            <div className="flex items-stretch gap-3">
+            <div className="grid grid-cols-[auto,1fr,1fr] items-stretch gap-3">
               <div className="inline-flex h-12 items-center border border-border">
                 <button
                   type="button"
@@ -633,7 +633,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <motion.button
                 disabled={isSelectedOutOfStock || isAddingToBag}
                 onClick={() => handleAddToBag(false)}
-                className={`flex-1 py-4 text-sm tracking-widest uppercase transition-colors ${
+                className={`h-12 rounded-none text-xs tracking-[0.15em] uppercase transition-colors ${
                   isSelectedOutOfStock
                     ? "bg-muted text-muted-foreground cursor-not-allowed"
                     : "bg-foreground text-background hover:bg-foreground/90"
@@ -642,14 +642,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               >
                 {isSelectedOutOfStock ? "Stock Out" : isAddingToBag ? "Adding..." : "Add to Bag"}
               </motion.button>
-              <Button
-                type="button"
-                disabled={isSelectedOutOfStock || isAddingToBag}
-                onClick={() => handleAddToBag(true)}
-                className="h-12 px-6 bg-indigo-600 text-white hover:bg-indigo-700 uppercase tracking-widest text-xs"
-              >
-                Buy Now
-              </Button>
+
             </div>
 
             <p className="text-xs text-muted-foreground text-center tracking-widest">
