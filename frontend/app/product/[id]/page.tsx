@@ -98,6 +98,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [reviewsLoading, setReviewsLoading] = useState(true)
   const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([])
   const [relatedLoading, setRelatedLoading] = useState(true)
+  const [addingRelatedProductId, setAddingRelatedProductId] = useState<string | null>(null)
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewComment, setReviewComment] = useState("")
   const [submittingReview, setSubmittingReview] = useState(false)
@@ -507,6 +508,53 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     }
   }
 
+  const handleAddRelatedToBag = async (relatedProduct: RelatedProduct) => {
+    if (addingRelatedProductId === relatedProduct.id) return
+    const stored = localStorage.getItem("user")
+    if (!stored) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to add products to your cart.",
+      })
+      window.location.href = "/signin"
+      return
+    }
+    try {
+      const parsed = JSON.parse(stored)
+      if (!parsed?.id) {
+        window.location.href = "/signin"
+        return
+      }
+      setAddingRelatedProductId(relatedProduct.id)
+      const response = await fetch(`${API_BASE_URL}/api/cart`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: parsed.id,
+          product_id: relatedProduct.id,
+          quantity: 1,
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to add to cart")
+      }
+      toast({
+        title: "Added to cart",
+        description: `${relatedProduct.title} added to your cart.`,
+      })
+      window.dispatchEvent(new Event("cart-updated"))
+      window.dispatchEvent(new Event("cart-open"))
+    } catch (error) {
+      toast({
+        title: "Add to cart failed",
+        description: error instanceof Error ? error.message : "Failed to add to cart",
+      })
+    } finally {
+      setAddingRelatedProductId(null)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-background">
       <Navigation />
@@ -704,22 +752,32 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           ) : relatedProducts.length ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((item) => (
-                <Link key={item.id} href={`/product/${item.id}`} className="group block">
-                  <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      loading="lazy"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="mt-3 space-y-1">
-                    <p className="font-serif text-base group-hover:underline underline-offset-4">{item.title}</p>
-                    <p className="text-sm text-muted-foreground">Tk {item.price.toLocaleString()}</p>
-                  </div>
-                </Link>
+                <div key={item.id}>
+                  <Link href={`/product/${item.id}`} className="group block">
+                    <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        loading="lazy"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="mt-3 space-y-1">
+                      <p className="font-serif text-base group-hover:underline underline-offset-4">{item.title}</p>
+                      <p className="text-sm text-muted-foreground">Tk {item.price.toLocaleString()}</p>
+                    </div>
+                  </Link>
+                  <Button
+                    type="button"
+                    onClick={() => handleAddRelatedToBag(item)}
+                    disabled={addingRelatedProductId === item.id}
+                    className="mt-3 w-full rounded-none uppercase tracking-[0.15em] text-xs"
+                  >
+                    {addingRelatedProductId === item.id ? "Adding..." : "Add to cart"}
+                  </Button>
+                </div>
               ))}
             </div>
           ) : null}
