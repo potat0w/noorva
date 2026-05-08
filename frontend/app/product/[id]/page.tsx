@@ -368,7 +368,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     },
   ]
 
-  const handleAddToBag = async (redirectToCheckout = false) => {
+  const handleAddToBag = async () => {
     if (isSelectedOutOfStock || isAddingToBag) return
     const stored = localStorage.getItem("user")
     if (!stored) {
@@ -403,9 +403,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       })
       window.dispatchEvent(new Event("cart-updated"))
       window.dispatchEvent(new Event("cart-open"))
-      if (redirectToCheckout) {
-        window.location.href = "/checkout"
-      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to add item to bag"
       setCartMessage(message)
@@ -606,7 +603,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               onSelect={setSelectedSize}
             />
 
-            <div className="grid grid-cols-[auto,1fr,1fr] items-stretch gap-3">
+            <div className="flex items-stretch gap-3">
               <div className="inline-flex h-12 items-center border border-border">
                 <button
                   type="button"
@@ -632,8 +629,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
               <motion.button
                 disabled={isSelectedOutOfStock || isAddingToBag}
-                onClick={() => handleAddToBag(false)}
-                className={`h-12 rounded-none text-xs tracking-[0.15em] uppercase transition-colors ${
+                onClick={handleAddToBag}
+                className={`h-12 flex-1 rounded-none text-xs tracking-[0.15em] uppercase transition-colors ${
                   isSelectedOutOfStock
                     ? "bg-muted text-muted-foreground cursor-not-allowed"
                     : "bg-foreground text-background hover:bg-foreground/90"
