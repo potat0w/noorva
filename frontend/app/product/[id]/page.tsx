@@ -12,7 +12,7 @@ import { ProductGallery } from "@/components/product-gallery"
 import { SizeSelector } from "@/components/size-selector"
 import { ColorSelector } from "@/components/color-selector"
 import { ProductDetailsAccordion } from "@/components/product-details-accordion"
-import { ChevronRight, Star } from "lucide-react"
+import { ChevronRight, Minus, Plus, Star } from "lucide-react"
 import { API_BASE_URL } from "@/lib/api"
 import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -83,6 +83,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [loading, setLoading] = useState(true)
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [quantity, setQuantity] = useState(1)
   const [cartMessage, setCartMessage] = useState("")
   const [isAddingToBag, setIsAddingToBag] = useState(false)
   const [reviews, setReviews] = useState<ReviewApi[]>([])
@@ -259,6 +260,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const galleryImages = variantImages.length > 0 ? variantImages : [PLACEHOLDER_IMAGE]
   const displayPrice = Number(selectedVariant?.price ?? product.price) || 0
   const isSelectedOutOfStock = Boolean(selectedVariant) && (selectedVariant?.stock || 0) <= 0
+  const maxQuantity = Math.max(1, Number(selectedVariant?.stock) || 1)
   const colorList = (product.variants || [])
     .filter((variant) => Boolean(variant.color))
     .map((variant) => ({
@@ -299,7 +301,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     },
   ]
 
-  const handleAddToBag = async () => {
+  useEffect(() => {
+    if (quantity > maxQuantity) {
+      setQuantity(maxQuantity)
+    }
+  }, [quantity, maxQuantity])
+
+  const handleAddToBag = async (redirectToCheckout = false) => {
     if (isSelectedOutOfStock || isAddingToBag) return
     const stored = localStorage.getItem("user")
     if (!stored) {
@@ -320,7 +328,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         body: JSON.stringify({
           user_id: parsed.id,
           product_id: product.id,
-          quantity: 1,
+          quantity,
         }),
       })
       const data = await response.json()
@@ -334,6 +342,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       })
       window.dispatchEvent(new Event("cart-updated"))
       window.dispatchEvent(new Event("cart-open"))
+      if (redirectToCheckout) {
+        window.location.href = "/checkout"
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to add item to bag"
       setCartMessage(message)
@@ -487,18 +498,51 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               onSelect={setSelectedSize}
             />
 
-            <motion.button
-              disabled={isSelectedOutOfStock}
-              onClick={handleAddToBag}
-              className={`w-full py-4 text-sm tracking-widest uppercase transition-colors ${
-                isSelectedOutOfStock
-                  ? "bg-muted text-muted-foreground cursor-not-allowed"
-                  : "bg-foreground text-background hover:bg-foreground/90"
-              }`}
-              whileTap={{ scale: 0.98 }}
-            >
-              {isSelectedOutOfStock ? "Stock Out" : isAddingToBag ? "Adding..." : "Add to Bag"}
-            </motion.button>
+            <div className="flex items-stretch gap-3">
+              <div className="inline-flex h-12 items-center border border-border">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                  disabled={isSelectedOutOfStock || isAddingToBag || quantity <= 1}
+                  className="h-full px-4 disabled:opacity-40"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="flex h-full min-w-12 items-center justify-center border-x border-border text-sm">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((prev) => Math.min(maxQuantity, prev + 1))}
+                  disabled={isSelectedOutOfStock || isAddingToBag || quantity >= maxQuantity}
+                  className="h-full px-4 disabled:opacity-40"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              <motion.button
+                disabled={isSelectedOutOfStock || isAddingToBag}
+                onClick={() => handleAddToBag(false)}
+                className={`flex-1 py-4 text-sm tracking-widest uppercase transition-colors ${
+                  isSelectedOutOfStock
+                    ? "bg-muted text-muted-foreground cursor-not-allowed"
+                    : "bg-foreground text-background hover:bg-foreground/90"
+                }`}
+                whileTap={{ scale: 0.98 }}
+              >
+                {isSelectedOutOfStock ? "Stock Out" : isAddingToBag ? "Adding..." : "Add to Bag"}
+              </motion.button>
+              <Button
+                type="button"
+                disabled={isSelectedOutOfStock || isAddingToBag}
+                onClick={() => handleAddToBag(true)}
+                className="h-12 px-6 bg-indigo-600 text-white hover:bg-indigo-700 uppercase tracking-widest text-xs"
+              >
+                Buy Now
+              </Button>
+            </div>
 
             <p className="text-xs text-muted-foreground text-center tracking-widest">
               {isSelectedOutOfStock
