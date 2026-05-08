@@ -248,7 +248,7 @@ export default function CheckoutPage() {
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))}
-                        className="rounded-l-none border-border/50 focus:border-foreground"
+                        className="h-10 rounded-l-none border-border/50 focus:border-foreground"
                         placeholder="01XXXXXXXXX"
                       />
                     </div>
