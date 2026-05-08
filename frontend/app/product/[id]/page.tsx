@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import { useState } from "react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { motion } from "framer-motion"
 import { Navigation } from "@/components/navigation"
 import { PremiumFooter } from "@/components/premium-footer"
@@ -53,6 +54,13 @@ interface ReviewApi {
   } | null
 }
 
+interface RelatedProduct {
+  id: string
+  title: string
+  price: number
+  image: string
+}
+
 const PLACEHOLDER_IMAGE = "/placeholder.svg"
 const COLOR_HEX_MAP: Record<string, string> = {
   black: "#111827",
@@ -88,6 +96,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [isAddingToBag, setIsAddingToBag] = useState(false)
   const [reviews, setReviews] = useState<ReviewApi[]>([])
   const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([])
+  const [relatedLoading, setRelatedLoading] = useState(true)
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewComment, setReviewComment] = useState("")
   const [submittingReview, setSubmittingReview] = useState(false)
@@ -120,6 +130,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }
 
   const normalize = (value: string | null | undefined) => (value || "").trim().toLowerCase()
+  const getPrimaryImage = (item: ProductApi) => {
+    const images = (item.variants || [])
+      .flatMap((variant) => (variant.variant_images || []).sort((a, b) => a.position - b.position))
+      .map((image) => image.image_url)
+      .filter(Boolean)
+    return images[0] || PLACEHOLDER_IMAGE
+  }
 
   const loadReviews = async () => {
     setReviewsLoading(true)
@@ -190,6 +207,36 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   useEffect(() => {
     loadReviews()
+  }, [id])
+
+  useEffect(() => {
+    const loadRelatedProducts = async () => {
+      setRelatedLoading(true)
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/products`)
+        const data = (await response.json()) as ProductApi[]
+        if (!response.ok || !Array.isArray(data)) {
+          setRelatedProducts([])
+          return
+        }
+        const mapped = data
+          .filter((item) => item.id !== id)
+          .map((item) => ({
+            id: item.id,
+            title: item.title,
+            price: Number(item.price) || 0,
+            image: getPrimaryImage(item),
+          }))
+          .slice(0, 4)
+        setRelatedProducts(mapped)
+      } catch {
+        setRelatedProducts([])
+      } finally {
+        setRelatedLoading(false)
+      }
+    }
+
+    loadRelatedProducts()
   }, [id])
 
   const averageRating = reviews.length
@@ -646,6 +693,36 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
             </form>
           </div>
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-6 pb-16 md:pb-24">
+        <div className="space-y-6">
+          <h2 className="font-serif text-3xl">More Products</h2>
+          {relatedLoading ? (
+            <p className="text-sm text-muted-foreground">Loading more products...</p>
+          ) : relatedProducts.length ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((item) => (
+                <Link key={item.id} href={`/product/${item.id}`} className="group block">
+                  <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      loading="lazy"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="mt-3 space-y-1">
+                    <p className="font-serif text-base group-hover:underline underline-offset-4">{item.title}</p>
+                    <p className="text-sm text-muted-foreground">Tk {item.price.toLocaleString()}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
 
