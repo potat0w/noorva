@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { API_BASE_URL } from "@/lib/api"
 import { toast } from "@/hooks/use-toast"
+import { z } from "zod"
 
 interface VariantImage {
   image_url: string
@@ -43,6 +44,25 @@ interface CartItem {
   image: string
 }
 
+type DeliveryArea = "" | "inside_dhaka" | "outside_dhaka"
+type CheckoutField = "email" | "phone" | "firstName" | "lastName" | "address" | "deliveryArea" | "zip"
+
+const checkoutSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address."),
+  phone: z.string().trim().regex(/^1\d{9}$/, "Enter a valid Bangladesh phone number."),
+  firstName: z.string().trim().min(2, "First name must be at least 2 characters."),
+  lastName: z.string().trim().min(2, "Last name must be at least 2 characters."),
+  address: z.string().trim().min(5, "Address must be at least 5 characters."),
+  deliveryArea: z.enum(["inside_dhaka", "outside_dhaka"], {
+    message: "Select a delivery area.",
+  }),
+  zip: z
+    .string()
+    .trim()
+    .optional()
+    .refine((value) => !value || /^[A-Za-z0-9 -]{3,10}$/.test(value), "Enter a valid postal code."),
+})
+
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loadingCart, setLoadingCart] = useState(true)
@@ -53,8 +73,9 @@ export default function CheckoutPage() {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [address, setAddress] = useState("")
-  const [deliveryArea, setDeliveryArea] = useState<"" | "inside_dhaka" | "outside_dhaka">("")
+  const [deliveryArea, setDeliveryArea] = useState<DeliveryArea>("")
   const [zip, setZip] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<CheckoutField, string>>>({})
 
   useEffect(() => {
     const loadCart = async () => {
@@ -107,6 +128,14 @@ export default function CheckoutPage() {
   const shipping = deliveryArea === "inside_dhaka" ? 60 : deliveryArea === "outside_dhaka" ? 150 : 0
   const total = subtotal + shipping
   const normalizedPhone = phone.startsWith("880") ? phone.slice(3) : phone.startsWith("0") ? phone.slice(1) : phone
+  const clearFieldError = (field: CheckoutField) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
 
   const handlePlaceOrder = async () => {
     if (placingOrder || cartItems.length === 0) return
@@ -121,8 +150,24 @@ export default function CheckoutPage() {
         window.location.href = "/signin"
         return
       }
-      if (!email || !firstName || !lastName || !phone || !address || !deliveryArea) {
-        const message = "Please complete all required shipping fields."
+      const validationResult = checkoutSchema.safeParse({
+        email,
+        phone: normalizedPhone.trim(),
+        firstName,
+        lastName,
+        address,
+        deliveryArea,
+        zip: zip.trim(),
+      })
+      if (!validationResult.success) {
+        const nextErrors: Partial<Record<CheckoutField, string>> = {}
+        for (const issue of validationResult.error.issues) {
+          const key = issue.path[0] as CheckoutField | undefined
+          if (!key || nextErrors[key]) continue
+          nextErrors[key] = issue.message
+        }
+        setFieldErrors(nextErrors)
+        const message = "Please fix the highlighted fields."
         setCheckoutMessage(message)
         toast({
           title: "Order not placed",
@@ -130,16 +175,7 @@ export default function CheckoutPage() {
         })
         return
       }
-      const bdPhoneRegex = /^1\d{9}$/
-      if (!bdPhoneRegex.test(normalizedPhone.trim())) {
-        const message = "Enter a valid Bangladesh phone number."
-        setCheckoutMessage(message)
-        toast({
-          title: "Invalid phone number",
-          description: message,
-        })
-        return
-      }
+      setFieldErrors({})
       setPlacingOrder(true)
       setCheckoutMessage("")
       const payload = {
@@ -230,10 +266,14 @@ export default function CheckoutPage() {
                       id="email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="mt-1.5 border-border/50 focus:border-foreground"
+                      onChange={(e) => {
+                        setEmail(e.target.value)
+                        clearFieldError("email")
+                      }}
+                      className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.email ? "border-destructive" : ""}`}
                       placeholder="your@email.com"
                     />
+                    {fieldErrors.email ? <p className="mt-1 text-xs text-destructive">{fieldErrors.email}</p> : null}
                   </div>
                   <div>
                     <Label htmlFor="phone" className="text-xs tracking-wide">
@@ -247,11 +287,15 @@ export default function CheckoutPage() {
                         id="phone"
                         type="tel"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))}
-                        className="h-10 rounded-l-none border-border/50 focus:border-foreground"
+                        onChange={(e) => {
+                          setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))
+                          clearFieldError("phone")
+                        }}
+                        className={`h-10 rounded-l-none border-border/50 focus:border-foreground ${fieldErrors.phone ? "border-destructive" : ""}`}
                         placeholder="01XXXXXXXXX"
                       />
                     </div>
+                    {fieldErrors.phone ? <p className="mt-1 text-xs text-destructive">{fieldErrors.phone}</p> : null}
                   </div>
                 </div>
               </div>
@@ -267,9 +311,13 @@ export default function CheckoutPage() {
                       <Input
                         id="firstName"
                         value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="mt-1.5 border-border/50 focus:border-foreground"
+                        onChange={(e) => {
+                          setFirstName(e.target.value)
+                          clearFieldError("firstName")
+                        }}
+                        className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.firstName ? "border-destructive" : ""}`}
                       />
+                      {fieldErrors.firstName ? <p className="mt-1 text-xs text-destructive">{fieldErrors.firstName}</p> : null}
                     </div>
                     <div>
                       <Label htmlFor="lastName" className="text-xs tracking-wide">
@@ -278,9 +326,13 @@ export default function CheckoutPage() {
                       <Input
                         id="lastName"
                         value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="mt-1.5 border-border/50 focus:border-foreground"
+                        onChange={(e) => {
+                          setLastName(e.target.value)
+                          clearFieldError("lastName")
+                        }}
+                        className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.lastName ? "border-destructive" : ""}`}
                       />
+                      {fieldErrors.lastName ? <p className="mt-1 text-xs text-destructive">{fieldErrors.lastName}</p> : null}
                     </div>
                   </div>
                   <div>
@@ -290,9 +342,13 @@ export default function CheckoutPage() {
                     <Input
                       id="address"
                       value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      className="mt-1.5 border-border/50 focus:border-foreground"
+                      onChange={(e) => {
+                        setAddress(e.target.value)
+                        clearFieldError("address")
+                      }}
+                      className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.address ? "border-destructive" : ""}`}
                     />
+                    {fieldErrors.address ? <p className="mt-1 text-xs text-destructive">{fieldErrors.address}</p> : null}
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -302,14 +358,22 @@ export default function CheckoutPage() {
                       <select
                         id="deliveryArea"
                         value={deliveryArea}
-                        onChange={(e) => setDeliveryArea(e.target.value as "" | "inside_dhaka" | "outside_dhaka")}
-                        className="mt-1.5 h-10 w-full border border-border/50 bg-background px-3 text-sm focus:outline-none focus:border-foreground"
+                        onChange={(e) => {
+                          setDeliveryArea(e.target.value as DeliveryArea)
+                          clearFieldError("deliveryArea")
+                        }}
+                        className={`mt-1.5 h-10 w-full border bg-background px-3 text-sm focus:outline-none focus:border-foreground ${
+                          fieldErrors.deliveryArea ? "border-destructive" : "border-border/50"
+                        }`}
                         required
                       >
                         <option value="">Select area</option>
                         <option value="inside_dhaka">Inside Dhaka</option>
                         <option value="outside_dhaka">Outside Dhaka</option>
                       </select>
+                      {fieldErrors.deliveryArea ? (
+                        <p className="mt-1 text-xs text-destructive">{fieldErrors.deliveryArea}</p>
+                      ) : null}
                     </div>
                     <div>
                       <Label htmlFor="zip" className="text-xs tracking-wide">
@@ -318,9 +382,13 @@ export default function CheckoutPage() {
                       <Input
                         id="zip"
                         value={zip}
-                        onChange={(e) => setZip(e.target.value)}
-                        className="mt-1.5 border-border/50 focus:border-foreground"
+                        onChange={(e) => {
+                          setZip(e.target.value)
+                          clearFieldError("zip")
+                        }}
+                        className={`mt-1.5 border-border/50 focus:border-foreground ${fieldErrors.zip ? "border-destructive" : ""}`}
                       />
+                      {fieldErrors.zip ? <p className="mt-1 text-xs text-destructive">{fieldErrors.zip}</p> : null}
                     </div>
                   </div>
                 </div>

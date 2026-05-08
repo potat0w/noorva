@@ -10,6 +10,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { API_BASE_URL } from '@/lib/api'
 import { toast } from '@/hooks/use-toast'
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const isValidEmail = (value: string) => EMAIL_REGEX.test(value.trim())
+
+const hasNumber = (value: string) => /\d/.test(value)
+
 export default function SignInPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [isLoading, setIsLoading] = useState(false)
@@ -125,6 +131,26 @@ export default function SignInPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    const normalizedEmail = loginEmail.trim().toLowerCase()
+    const normalizedPassword = loginPassword.trim()
+    if (!normalizedEmail || !normalizedPassword) {
+      const message = 'Email and password are required'
+      setError(message)
+      toast({
+        title: 'Sign in failed',
+        description: message,
+      })
+      return
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      const message = 'Please enter a valid email address'
+      setError(message)
+      toast({
+        title: 'Sign in failed',
+        description: message,
+      })
+      return
+    }
     setIsLoading(true)
     setError('')
     setSuccess('')
@@ -133,7 +159,7 @@ export default function SignInPage() {
       const response = await fetch(`${API_BASE_URL}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+        body: JSON.stringify({ email: normalizedEmail, password: normalizedPassword }),
       })
       const data = await response.json()
       if (!response.ok) {
@@ -163,11 +189,51 @@ export default function SignInPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
+    const normalizedName = signupName.trim()
+    const normalizedEmail = signupEmail.trim().toLowerCase()
+    const normalizedPassword = signupPassword.trim()
+    const normalizedConfirmPassword = confirmPassword.trim()
+    if (!normalizedName) {
+      const message = 'Full name is required'
+      setError(message)
+      toast({
+        title: 'Sign up failed',
+        description: message,
+      })
+      return
+    }
+    if (normalizedName.length < 2) {
+      const message = 'Full name must be at least 2 characters'
+      setError(message)
+      toast({
+        title: 'Sign up failed',
+        description: message,
+      })
+      return
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      const message = 'Please enter a valid email address'
+      setError(message)
+      toast({
+        title: 'Sign up failed',
+        description: message,
+      })
+      return
+    }
+    if (!normalizedPassword || !normalizedConfirmPassword) {
+      const message = 'Password and confirm password are required'
+      setError(message)
+      toast({
+        title: 'Sign up failed',
+        description: message,
+      })
+      return
+    }
     setIsLoading(true)
     setError('')
     setSuccess('')
 
-    if (signupPassword !== confirmPassword) {
+    if (normalizedPassword !== normalizedConfirmPassword) {
       const message = 'Passwords do not match'
       setError(message)
       toast({
@@ -177,8 +243,18 @@ export default function SignInPage() {
       setIsLoading(false)
       return
     }
-    if (signupPassword.length < 8) {
+    if (normalizedPassword.length < 8) {
       const message = 'Password must be at least 8 characters long'
+      setError(message)
+      toast({
+        title: 'Sign up failed',
+        description: message,
+      })
+      setIsLoading(false)
+      return
+    }
+    if (!hasNumber(normalizedPassword)) {
+      const message = 'Password must contain at least one number'
       setError(message)
       toast({
         title: 'Sign up failed',
@@ -192,7 +268,7 @@ export default function SignInPage() {
       const response = await fetch(`${API_BASE_URL}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: signupName, email: signupEmail, password: signupPassword }),
+        body: JSON.stringify({ name: normalizedName, email: normalizedEmail, password: normalizedPassword }),
       })
       const data = await response.json()
       if (!response.ok) {
@@ -202,7 +278,7 @@ export default function SignInPage() {
       const loginResponse = await fetch(`${API_BASE_URL}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: signupEmail, password: signupPassword }),
+        body: JSON.stringify({ email: normalizedEmail, password: normalizedPassword }),
       })
       const loginData = await loginResponse.json()
       if (!loginResponse.ok) {
@@ -309,6 +385,7 @@ export default function SignInPage() {
                     placeholder="you@domain.com"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
+                    onBlur={(e) => setLoginEmail(e.target.value.trim())}
                     className="h-11 rounded-none border-x-0 border-t-0 border-b border-foreground/20 bg-transparent px-0 focus-visible:ring-0 focus-visible:border-foreground"
                   />
                 </div>
@@ -366,9 +443,11 @@ export default function SignInPage() {
                     id="signup-name"
                     type="text"
                     required
+                    minLength={2}
                     placeholder="Jane Doe"
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
+                    onBlur={(e) => setSignupName(e.target.value.trim())}
                     className="h-11 rounded-none border-x-0 border-t-0 border-b border-foreground/20 bg-transparent px-0 focus-visible:ring-0 focus-visible:border-foreground"
                   />
                 </div>
@@ -384,6 +463,7 @@ export default function SignInPage() {
                     placeholder="you@domain.com"
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
+                    onBlur={(e) => setSignupEmail(e.target.value.trim().toLowerCase())}
                     className="h-11 rounded-none border-x-0 border-t-0 border-b border-foreground/20 bg-transparent px-0 focus-visible:ring-0 focus-visible:border-foreground"
                   />
                 </div>
@@ -397,6 +477,7 @@ export default function SignInPage() {
                       type={showPassword ? 'text' : 'password'}
                       required
                       minLength={8}
+                      pattern=".*\d.*"
                       placeholder="At least 8 characters"
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
@@ -425,7 +506,7 @@ export default function SignInPage() {
                       id="confirm-password"
                       type={showConfirmPassword ? 'text' : 'password'}
                       required
-                      minLength={6}
+                      minLength={8}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="h-11 rounded-none border-x-0 border-t-0 border-b border-foreground/20 bg-transparent px-0 pr-8 focus-visible:ring-0 focus-visible:border-foreground"
