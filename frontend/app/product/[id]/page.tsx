@@ -227,6 +227,25 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     setSelectedSize(fallbackSize)
   }, [product, selectedColor, selectedSize])
 
+  useEffect(() => {
+    if (!product) {
+      setQuantity(1)
+      return
+    }
+    const variants = product.variants || []
+    const scoped =
+      selectedColor && variants.some((variant) => normalize(variant.color) === normalize(selectedColor))
+        ? variants.filter((variant) => normalize(variant.color) === normalize(selectedColor))
+        : variants
+    const currentVariant =
+      scoped.find((variant) => getVariantSize(variant) === selectedSize) ||
+      scoped.find((variant) => (variant.stock || 0) > 0) ||
+      scoped[0] ||
+      null
+    const nextMaxQuantity = Math.max(1, Number(currentVariant?.stock) || 1)
+    setQuantity((prev) => Math.min(prev, nextMaxQuantity))
+  }, [product, selectedColor, selectedSize])
+
   if (!loading && !product) {
     notFound()
   }
@@ -300,12 +319,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       ],
     },
   ]
-
-  useEffect(() => {
-    if (quantity > maxQuantity) {
-      setQuantity(maxQuantity)
-    }
-  }, [quantity, maxQuantity])
 
   const handleAddToBag = async (redirectToCheckout = false) => {
     if (isSelectedOutOfStock || isAddingToBag) return
