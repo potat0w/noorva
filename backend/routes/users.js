@@ -4,12 +4,12 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const supabase = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Get all users (admin only)
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('users')
@@ -290,7 +290,7 @@ router.post('/change-password', authenticateToken, async (req, res) => {
 });
 
 // Update user
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, role } = req.body;
@@ -312,7 +312,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete user
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     

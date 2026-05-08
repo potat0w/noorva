@@ -16,6 +16,7 @@ export function Navigation() {
   const [accountHref, setAccountHref] = useState("/signin")
   const [searchQuery, setSearchQuery] = useState("")
   const [cartCount, setCartCount] = useState(0)
+  const [isAdmin, setIsAdmin] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const searchContainerRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
@@ -41,6 +42,17 @@ export function Navigation() {
   useEffect(() => {
     const syncAuthLink = () => {
       setAccountHref(localStorage.getItem("token") ? "/account/profile" : "/signin")
+      const storedUser = localStorage.getItem("user")
+      if (!storedUser) {
+        setIsAdmin(false)
+        return
+      }
+      try {
+        const parsed = JSON.parse(storedUser)
+        setIsAdmin(parsed?.role === "admin")
+      } catch {
+        setIsAdmin(false)
+      }
     }
     syncAuthLink()
     window.addEventListener("storage", syncAuthLink)
@@ -56,6 +68,10 @@ export function Navigation() {
       }
       try {
         const parsed = JSON.parse(stored)
+        if (parsed?.role === "admin") {
+          setCartCount(0)
+          return
+        }
         if (!parsed?.id) {
           setCartCount(0)
           return
@@ -210,20 +226,22 @@ export function Navigation() {
                 <User className="h-5 w-5 stroke-[1.5]" />
               </Link>
 
-              <button
-                onClick={() => setIsCartOpen(true)}
-                aria-label="Shopping cart"
-                className={`p-2 -mr-2 relative transition-colors duration-500 ${iconColor}`}
-              >
-                <ShoppingBag className="h-5 w-5 stroke-[1.5]" />
-                <span
-                  className={`absolute -top-1 -right-1 h-4 w-4 text-[10px] flex items-center justify-center transition-colors duration-500 ${
-                    isScrolled ? "bg-foreground text-background" : "bg-white text-foreground"
-                  }`}
+              {!isAdmin ? (
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  aria-label="Shopping cart"
+                  className={`p-2 -mr-2 relative transition-colors duration-500 ${iconColor}`}
                 >
-                  {cartCount}
-                </span>
-              </button>
+                  <ShoppingBag className="h-5 w-5 stroke-[1.5]" />
+                  <span
+                    className={`absolute -top-1 -right-1 h-4 w-4 text-[10px] flex items-center justify-center transition-colors duration-500 ${
+                      isScrolled ? "bg-foreground text-background" : "bg-white text-foreground"
+                    }`}
+                  >
+                    {cartCount}
+                  </span>
+                </button>
+              ) : null}
             </div>
           </div>
         </nav>

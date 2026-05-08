@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 import { User, Package, MapPin, Settings, LogOut } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -14,6 +15,18 @@ const accountLinks = [
 
 export function AccountSidebar() {
   const pathname = usePathname()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user")
+    if (!stored) return
+    try {
+      const parsed = JSON.parse(stored)
+      setIsAdmin(parsed?.role === "admin")
+    } catch {
+      setIsAdmin(false)
+    }
+  }, [])
 
   const handleLogout = async () => {
     localStorage.removeItem("token")
@@ -21,10 +34,14 @@ export function AccountSidebar() {
     window.location.href = "/signin"
   }
 
+  const visibleLinks = isAdmin
+    ? accountLinks.filter((link) => link.href !== "/account/orders" && link.href !== "/account/addresses")
+    : accountLinks
+
   return (
     <aside className="w-full lg:w-64 flex-shrink-0">
       <nav className="space-y-1">
-        {accountLinks.map((link) => {
+        {visibleLinks.map((link) => {
           const isActive = pathname === link.href
           return (
             <Link
@@ -46,6 +63,26 @@ export function AccountSidebar() {
             </Link>
           )
         })}
+        {isAdmin ? (
+          <Link
+            href="/account/admin-orders"
+            className={`flex items-center gap-3 px-4 py-3 text-sm tracking-wide transition-colors relative ${
+              pathname === "/account/admin-orders"
+                ? "text-foreground bg-muted"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+          >
+            {pathname === "/account/admin-orders" ? (
+              <motion.div
+                layoutId="account-sidebar-indicator"
+                className="absolute left-0 top-0 bottom-0 w-0.5 bg-foreground"
+                transition={{ duration: 0.2 }}
+              />
+            ) : null}
+            <Package className="h-4 w-4 stroke-[1.5]" />
+            Admin Orders
+          </Link>
+        ) : null}
         <button
           className="flex items-center gap-3 px-4 py-3 text-sm tracking-wide text-muted-foreground hover:text-foreground transition-colors w-full"
           onClick={handleLogout}

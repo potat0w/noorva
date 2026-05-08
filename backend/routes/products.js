@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/database');
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const productSelect = `
   *,
   variants (
@@ -20,7 +21,7 @@ const productSelect = `
 `;
 
 // Get all products
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('products')
@@ -55,7 +56,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new product
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { title, description, price } = req.body;
     
@@ -72,7 +73,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update product
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, price } = req.body;
@@ -94,7 +95,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete product
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     

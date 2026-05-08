@@ -65,6 +65,21 @@ export default function ShopPage() {
   const [addingProductId, setAddingProductId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<SortOption>("featured")
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user")
+    if (!stored) {
+      setIsAdmin(false)
+      return
+    }
+    try {
+      const parsed = JSON.parse(stored)
+      setIsAdmin(parsed?.role === "admin")
+    } catch {
+      setIsAdmin(false)
+    }
+  }, [])
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -105,6 +120,9 @@ export default function ShopPage() {
   }, [products, searchTerm, sortBy])
 
   const handleAddToCart = async (product: ProductCard) => {
+    if (isAdmin) {
+      return
+    }
     if (addingProductId === product.id) return
     const stored = localStorage.getItem("user")
     if (!stored) {
@@ -276,14 +294,16 @@ export default function ShopPage() {
                       <p className="text-sm text-muted-foreground">Tk {product.price.toLocaleString()}</p>
                     </div>
                   </Link>
-                  <Button
-                    type="button"
-                    onClick={() => handleAddToCart(product)}
-                    disabled={addingProductId === product.id}
-                    className="mt-4 w-full rounded-none uppercase tracking-[0.15em] text-xs"
-                  >
-                    {addingProductId === product.id ? "Adding..." : "Add to cart"}
-                  </Button>
+                  {!isAdmin ? (
+                    <Button
+                      type="button"
+                      onClick={() => handleAddToCart(product)}
+                      disabled={addingProductId === product.id}
+                      className="mt-4 w-full rounded-none uppercase tracking-[0.15em] text-xs"
+                    >
+                      {addingProductId === product.id ? "Adding..." : "Add to cart"}
+                    </Button>
+                  ) : null}
                 </motion.div>
               ))}
             </motion.div>

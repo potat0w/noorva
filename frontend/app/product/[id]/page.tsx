@@ -104,6 +104,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [submittingReview, setSubmittingReview] = useState(false)
   const [deletingReview, setDeletingReview] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const getVariantSize = (variant: Variant) => {
     const value = (variant.name || "").trim()
@@ -196,13 +197,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const stored = localStorage.getItem("user")
     if (!stored) {
       setCurrentUserId(null)
+      setIsAdmin(false)
       return
     }
     try {
       const parsed = JSON.parse(stored)
       setCurrentUserId(parsed?.id || null)
+      setIsAdmin(parsed?.role === "admin")
     } catch {
       setCurrentUserId(null)
+      setIsAdmin(false)
     }
   }, [])
 
@@ -369,6 +373,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   ]
 
   const handleAddToBag = async () => {
+    if (isAdmin) return
     if (isSelectedOutOfStock || isAddingToBag) return
     const stored = localStorage.getItem("user")
     if (!stored) {
@@ -506,6 +511,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   }
 
   const handleAddRelatedToBag = async (relatedProduct: RelatedProduct) => {
+    if (isAdmin) return
     if (addingRelatedProductId === relatedProduct.id) return
     const stored = localStorage.getItem("user")
     if (!stored) {
@@ -627,18 +633,20 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
-              <motion.button
-                disabled={isSelectedOutOfStock || isAddingToBag}
-                onClick={handleAddToBag}
-                className={`h-12 flex-1 rounded-none text-xs tracking-[0.15em] uppercase transition-colors ${
-                  isSelectedOutOfStock
-                    ? "bg-muted text-muted-foreground cursor-not-allowed"
-                    : "bg-foreground text-background hover:bg-foreground/90"
-                }`}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isSelectedOutOfStock ? "Stock Out" : isAddingToBag ? "Adding..." : "Add to Bag"}
-              </motion.button>
+              {!isAdmin ? (
+                <motion.button
+                  disabled={isSelectedOutOfStock || isAddingToBag}
+                  onClick={handleAddToBag}
+                  className={`h-12 flex-1 rounded-none text-xs tracking-[0.15em] uppercase transition-colors ${
+                    isSelectedOutOfStock
+                      ? "bg-muted text-muted-foreground cursor-not-allowed"
+                      : "bg-foreground text-background hover:bg-foreground/90"
+                  }`}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {isSelectedOutOfStock ? "Stock Out" : isAddingToBag ? "Adding..." : "Add to Bag"}
+                </motion.button>
+              ) : null}
 
             </div>
 
@@ -759,14 +767,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                       <p className="text-sm text-muted-foreground">Tk {item.price.toLocaleString()}</p>
                     </div>
                   </Link>
-                  <Button
-                    type="button"
-                    onClick={() => handleAddRelatedToBag(item)}
-                    disabled={addingRelatedProductId === item.id}
-                    className="mt-3 w-full rounded-none uppercase tracking-[0.15em] text-xs"
-                  >
-                    {addingRelatedProductId === item.id ? "Adding..." : "Add to cart"}
-                  </Button>
+                  {!isAdmin ? (
+                    <Button
+                      type="button"
+                      onClick={() => handleAddRelatedToBag(item)}
+                      disabled={addingRelatedProductId === item.id}
+                      className="mt-3 w-full rounded-none uppercase tracking-[0.15em] text-xs"
+                    >
+                      {addingRelatedProductId === item.id ? "Adding..." : "Add to cart"}
+                    </Button>
+                  ) : null}
                 </div>
               ))}
             </div>

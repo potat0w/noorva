@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/database');
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const allocateVariantStock = async (productId, requestedQty) => {
   const { data: variants, error } = await supabase
@@ -34,7 +35,7 @@ const allocateVariantStock = async (productId, requestedQty) => {
 };
 
 // Get all orders
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('orders')
@@ -43,6 +44,22 @@ router.get('/', async (req, res) => {
         users (
           name,
           email
+        ),
+        order_items (
+          *,
+          products (
+            title,
+            variants (
+              id,
+              color,
+              price,
+              variant_images (
+                id,
+                image_url,
+                position
+              )
+            )
+          )
         )
       `)
       .order('created_at', { ascending: false });
@@ -91,7 +108,7 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Get order by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -229,7 +246,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update order status
-router.put('/:id/status', async (req, res) => {
+router.put('/:id/status', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -251,7 +268,7 @@ router.put('/:id/status', async (req, res) => {
 });
 
 // Update order
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { total_price, status, full_name, phone, address, city, postal_code } = req.body;
@@ -273,7 +290,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete order
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
