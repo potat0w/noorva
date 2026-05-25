@@ -33,8 +33,28 @@ app.use('/api/orders', ordersRouter);
 app.use('/api/order-items', orderItemsRouter);
 app.use('/api/reviews', reviewsRouter);
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'E-commerce API is running' });
+app.get('/health', async (req, res) => {
+  const payload = {
+    status: 'OK',
+    service: 'noorva-backend',
+    message: 'E-commerce API is running',
+    timestamp: new Date().toISOString(),
+  };
+
+  try {
+    const supabase = require('./config/database');
+    const { error } = await supabase.from('products').select('id').limit(1);
+    if (error) {
+      return res.status(503).json({ ...payload, status: 'DEGRADED', database: 'unreachable' });
+    }
+    return res.status(200).json({ ...payload, database: 'ok' });
+  } catch {
+    return res.status(200).json(payload);
+  }
+});
+
+app.get('/ping', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 app.use(errorHandler);

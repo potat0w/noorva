@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron/keep-alive",
+      "schedule": "0 */4 * * *"
+    }
+  ],
   "experimentalServices": {
     "frontend": {
       "entrypoint": "frontend",

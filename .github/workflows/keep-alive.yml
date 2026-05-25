@@ -1,0 +1,33 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping frontend
+        run: |
+          curl -fsS --max-time 30 "${FRONTEND_URL}/api/ping" || exit 1
+        env:
+          FRONTEND_URL: ${{ vars.FRONTEND_URL || 'https://noorva-bm65.vercel.app' }}
+
+      - name: Ping backend health
+        run: |
+          curl -fsS --max-time 30 "${BACKEND_URL}/health" || exit 1
+        env:
+          BACKEND_URL: ${{ vars.BACKEND_URL || 'https://noorva.onrender.com' }}
+
+      - name: Ping keep-alive cron route
+        run: |
+          if [ -n "${CRON_SECRET}" ]; then
+            curl -fsS --max-time 45 -H "Authorization: Bearer ${CRON_SECRET}" "${FRONTEND_URL}/api/cron/keep-alive" || exit 1
+          else
+            curl -fsS --max-time 45 "${FRONTEND_URL}/api/cron/keep-alive" || exit 1
+          fi
+        env:
+          FRONTEND_URL: ${{ vars.FRONTEND_URL || 'https://noorva-bm65.vercel.app' }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
