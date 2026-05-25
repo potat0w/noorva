@@ -7,23 +7,23 @@ import { Instagram, Facebook } from "lucide-react"
 export function PremiumFooter() {
   const footerLinks = {
     shop: [
-      { label: "New Arrivals", href: "/shop/new" },
-      { label: "Women", href: "/shop/women" },
-      { label: "Men", href: "/shop/men" },
-      { label: "Accessories", href: "/shop/accessories" },
-      { label: "Timepieces", href: "/shop/timepieces" },
+      { label: "New Arrivals", href: "/shop" },
+      { label: "Women", href: "/shop" },
+      { label: "Men", href: "/shop" },
+      { label: "Accessories", href: "/shop" },
+      { label: "Timepieces", href: "/shop" },
     ],
     about: [
       { label: "Our Heritage", href: "/heritage" },
-      { label: "Craftsmanship", href: "/craftsmanship" },
-      { label: "Sustainability", href: "/sustainability" },
-      { label: "Careers", href: "/careers" },
+      { label: "Craftsmanship", href: "/heritage" },
+      { label: "Sustainability", href: "/heritage" },
+      { label: "Careers", href: "/heritage" },
     ],
     support: [
-      { label: "Contact Us", href: "/contact" },
-      { label: "Shipping & Returns", href: "/shipping" },
-      { label: "Size Guide", href: "/size-guide" },
-      { label: "Care Instructions", href: "/care" },
+      { label: "Contact Us", href: "/heritage" },
+      { label: "Shipping & Returns", href: "/terms" },
+      { label: "Size Guide", href: "/shop" },
+      { label: "Care Instructions", href: "/shop" },
     ],
   }
 

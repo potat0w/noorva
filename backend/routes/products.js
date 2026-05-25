@@ -20,8 +20,8 @@ const productSelect = `
   )
 `;
 
-// Get all products
-router.get('/', authenticateToken, requireAdmin, async (req, res) => {
+// Get all products (public — shop/catalog)
+router.get('/', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('products')
