@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Ping frontend
         run: |
-          curl -fsS --max-time 30 "${FRONTEND_URL}/api/ping" || exit 1
+          curl -fsS --max-time 30 "${FRONTEND_URL}/" || exit 1
         env:
           FRONTEND_URL: ${{ vars.FRONTEND_URL || 'https://noorva-bm65.vercel.app' }}
 

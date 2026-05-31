@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   const siteUrl = getSiteUrl()
   const backendHealthUrl = getBackendHealthUrl()
   const targets = [
-    { name: "frontend", url: `${siteUrl}/api/ping` },
+    { name: "frontend", url: `${siteUrl}/ping` },
     { name: "backend", url: backendHealthUrl },
   ]
 
